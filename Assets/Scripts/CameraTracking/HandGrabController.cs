@@ -1,7 +1,9 @@
 // HandGrabController.cs
 // Mano abierta -> no agarra. Si la mano cerrada (puño) esta sobre el cubo y venia
-// abierta, agarra el cubo; mientras esta agarrado sigue la mano. Al abrir la mano
-// (o perderla) se suelta y cae por gravedad sobre el plano.
+// abierta, agarra el cubo; mientras esta agarrado se levanta _liftHeight del suelo
+// y sigue la mano proyectada sobre el plano horizontal en _projectionPlaneY
+// (la proyeccion respeta la inclinacion de la camara). Al abrir la mano (o
+// perderla) se suelta y cae por gravedad.
 
 using UnityEngine;
 
@@ -14,7 +16,8 @@ namespace NuiGrab
     [SerializeField] private Camera _camera;
 
     [SerializeField, Min(0f)] private float _grabRadius = 0.08f;
-    [SerializeField, Min(0f)] private float _holdDistance = 3f;
+    [SerializeField, Min(0f)] private float _projectionPlaneY = 0.5f;
+    [SerializeField, Min(0f)] private float _liftHeight = 0.25f;
     [SerializeField, Range(1f, 30f)] private float _smoothSpeed = 10f;
 
     [SerializeField] private Renderer _highlightRenderer;
@@ -33,8 +36,6 @@ namespace NuiGrab
     private Color _currentEmission;
 
     public bool IsHolding => _isHolding;
-
-    public float HoldDistance => _holdDistance;
 
     private void Awake()
     {
@@ -145,9 +146,9 @@ namespace NuiGrab
     {
       var hand = _handTracker.HandViewportPosition;
       var ray = _camera.ScreenPointToRay(new Vector3(hand.x * _camera.pixelWidth, hand.y * _camera.pixelHeight, 0f));
-      var planePoint = _camera.transform.position + _camera.transform.forward * _holdDistance;
+      var planeHeight = _projectionPlaneY + _liftHeight;
 
-      if (new Plane(-_camera.transform.forward, planePoint).Raycast(ray, out var distance) && distance > 0f)
+      if (new Plane(Vector3.up, new Vector3(0f, planeHeight, 0f)).Raycast(ray, out var distance) && distance > 0f)
       {
         var target = ray.GetPoint(distance);
         target = Vector3.Lerp(transform.position, target, _smoothSpeed * Time.deltaTime);
