@@ -25,7 +25,12 @@ public class PlayerAnimator : MonoBehaviour
             return;
         }
 
-        var horizontalSpeed = new Vector2(_rb.linearVelocity.x, _rb.linearVelocity.z).magnitude;
-        _animator.SetFloat("Speed", Mathf.Clamp01(horizontalSpeed / _runSpeed));
+        var horizontalVelocity = new Vector3(_rb.linearVelocity.x, 0f, _rb.linearVelocity.z);
+
+        var moveZ = Vector3.Dot(horizontalVelocity, transform.forward) / _runSpeed;
+        var moveX = Vector3.Dot(horizontalVelocity, transform.right) / _runSpeed;
+
+        _animator.SetFloat("MoveZ", moveZ);
+        _animator.SetFloat("MoveX", moveX);
     }
 }

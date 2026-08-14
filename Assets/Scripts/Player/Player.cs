@@ -21,6 +21,7 @@ public class Player : MonoBehaviour
     [SerializeField, Range(0.1f, 40f)] private float _acceleration = 12f;
     [SerializeField, Range(0.1f, 40f)] private float _friction = 8f;
     [SerializeField, Range(1f, 30f)] private float _rotationSpeed = 12f;
+    [SerializeField, Range(0.1f, 1f)] private float _backwardSpeedFactor = 0.6f;
 
     [Header("Debug (live)")]
     [SerializeField] private float _debugStickMagnitude;
@@ -29,6 +30,12 @@ public class Player : MonoBehaviour
 
     private Rigidbody rb;
     private Vector2 moveInput;
+
+    /// <summary>
+    /// Cuando es false (mano activa), PlayerLookAt controla el giro del cuerpo;
+    /// este script solo mueve y no rota.
+    /// </summary>
+    public bool RotateToMovement { get; set; } = true;
 
     private void Awake()
     {
@@ -56,6 +63,12 @@ public class Player : MonoBehaviour
             targetSpeed = Mathf.Lerp(_walkSpeed, _runSpeed, _speedCurve.Evaluate(mag01));
         }
 
+        if (moveDir.sqrMagnitude > 0.001f)
+        {
+            var backwardAmount = Mathf.Clamp01(-Vector3.Dot(moveDir, transform.forward));
+            targetSpeed *= Mathf.Lerp(1f, _backwardSpeedFactor, backwardAmount);
+        }
+
         _debugStickMagnitude = magnitude;
         _debugMag01 = mag01;
         _debugTargetSpeed = targetSpeed;
@@ -69,7 +82,7 @@ public class Player : MonoBehaviour
             rb.linearVelocity.y,
             Mathf.Lerp(rb.linearVelocity.z, targetVel.z, k));
 
-        if (moveDir.sqrMagnitude > 0.001f)
+        if (RotateToMovement && moveDir.sqrMagnitude > 0.001f)
         {
             var targetRotation = Quaternion.LookRotation(moveDir, Vector3.up);
             var rotSpeed = _rotationSpeed * (0.3f + 0.7f * mag01);
