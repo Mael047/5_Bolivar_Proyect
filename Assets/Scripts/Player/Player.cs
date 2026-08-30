@@ -23,6 +23,11 @@ public class Player : MonoBehaviour
     [SerializeField, Range(1f, 30f)] private float _rotationSpeed = 12f;
     [SerializeField, Range(0.1f, 1f)] private float _backwardSpeedFactor = 0.6f;
 
+    [Header("Combat")]
+    [Tooltip("Multiplicador de velocidad de movimiento mientras ataca (0 = quieto, 1 = velocidad normal).")]
+    [SerializeField, Range(0f, 1f)] private float _attackSpeedFactor = 0.4f;
+    [SerializeField] private Animator _animator;
+
     [Header("Debug (live)")]
     [SerializeField] private float _debugStickMagnitude;
     [SerializeField] private float _debugMag01;
@@ -30,6 +35,10 @@ public class Player : MonoBehaviour
 
     private Rigidbody rb;
     private Vector2 moveInput;
+    private PlayerLookAt _lookAt;
+    private PlayerInput _playerInput;
+    private bool _isAttacking;
+    private bool _hasEnteredAttackState;
 
     /// <summary>
     /// Cuando es false (mano activa), PlayerLookAt controla el giro del cuerpo;
@@ -42,15 +51,113 @@ public class Player : MonoBehaviour
     /// </summary>
     public bool IsBusy { get; set; }
 
+    /// <summary>
+    /// True mientras el personaje esta ejecutando un ataque. Durante ese tiempo
+    /// la velocidad de movimiento se multiplica por _attackSpeedFactor.
+    /// </summary>
+    public bool IsAttacking => _isAttacking;
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
+        _lookAt = GetComponent<PlayerLookAt>();
+        _playerInput = GetComponent<PlayerInput>();
+
+        if (_animator == null)
+        {
+            _animator = GetComponentInChildren<Animator>();
+        }
+
+        var attackAction = _playerInput?.actions?.FindAction("Attack", true);
+        if (attackAction != null)
+        {
+            attackAction.performed += OnAttackPerformed;
+        }
+    }
+
+    private void OnDestroy()
+    {
+        var attackAction = _playerInput?.actions?.FindAction("Attack", true);
+        if (attackAction != null)
+        {
+            attackAction.performed -= OnAttackPerformed;
+        }
+    }
+
+    /// <summary>
+    /// Se dispara una sola vez por pulsacion (flanco ascendente) gracias al
+    /// callback "performed" de la accion Attack. Cada pulsacion re-arma el
+    /// trigger del Animator: si el personaje ya esta en Attack1, pasa a Attack2
+    /// (combo), y al terminar vuelve a Locomotion.
+    /// </summary>
+    private void OnAttackPerformed(InputAction.CallbackContext context)
+    {
+        TriggerAttack();
     }
 
     /// <summary>Llamado por PlayerInput (modo Send Messages) con la accion "Move".</summary>
     public void OnMove(InputValue value)
     {
         moveInput = value.Get<Vector2>();
+    }
+
+    /// <summary>Dispara un golpe. El AnimatorController resuelve la secuencia de combo.</summary>
+    public void TriggerAttack()
+    {
+        if (_animator == null)
+        {
+            return;
+        }
+
+        if (_lookAt != null)
+        {
+            _lookAt.SetBusy(true);
+        }
+
+        _animator.SetTrigger("Attack");
+    }
+
+    private void Update()
+    {
+        var attacking = IsInAttackingState();
+        _isAttacking = attacking;
+
+        if (!attacking)
+        {
+            if (_hasEnteredAttackState)
+            {
+                _hasEnteredAttackState = false;
+
+                if (_lookAt != null)
+                {
+                    _lookAt.SetBusy(false);
+                }
+            }
+
+            return;
+        }
+
+        _hasEnteredAttackState = true;
+    }
+
+    private bool IsInAttackingState()
+    {
+        if (_animator == null)
+        {
+            return false;
+        }
+
+        // Comprueba tanto el estado actual como el siguiente durante una
+        // transicion, para detectar el inicio/fin del ataque de forma robusta.
+        var current = _animator.GetCurrentAnimatorStateInfo(0);
+        var next = _animator.GetNextAnimatorStateInfo(0);
+
+        return IsAttackName(current) || IsAttackName(next);
+    }
+
+    private static bool IsAttackName(AnimatorStateInfo info)
+    {
+        return info.IsName("Attack1") || info.IsName("Attack2");
     }
 
     private void FixedUpdate()
@@ -73,6 +180,11 @@ public class Player : MonoBehaviour
         {
             moveDir = new Vector3(input.x, 0f, input.y) / magnitude;
             targetSpeed = Mathf.Lerp(_walkSpeed, _runSpeed, _speedCurve.Evaluate(mag01));
+
+            if (IsInAttackingState())
+            {
+                targetSpeed *= _attackSpeedFactor;
+            }
         }
 
         if (moveDir.sqrMagnitude > 0.001f)
