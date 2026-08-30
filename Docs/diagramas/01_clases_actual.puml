@@ -11,35 +11,133 @@ skinparam class {
   BackgroundColor #FDF6E3
   BorderColor #806E4A
 }
-skinparam stereotypeCBackgroundColor Pnal a MVC (as-is)"
+
+title Diagrama Nominal a MVC (as-is)
 
 package "CameraTracking (NuiGrab)" {
-  class HandTracker <<Controller\\n(sensor/input)>>
-  class HandGrabManager <<Controller+View>> #F8E0E0
-  class HandGrabController <<Controller>> #FDEBD0
-  class HandIndicator <<View>>
-  class CameraPreviewWindow <<View>>
+  class HandTracker <<Controller\\n(sensor/input)>> {
+    - GameObject _bootstrapPrefab
+    - float _closeThreshold
+    + bool IsHandDetected
+    + bool IsHandClosed
+    + float Openness
+    + Vector2 HandViewportPosition
+    + Texture PreviewTexture
+  }
+  class HandGrabManager <<Controller+View>> #F8E0E0 {
+    - HandTracker _handTracker
+    - Camera _camera
+    - Rigidbody _held / _hovered
+    - float _followSpeed / _targetSmoothing
+    - LayerMask _grabLayerMask
+    + bool IsHolding / IsHoveringObject
+    + Rigidbody Held
+    + Vector3 HeldVelocity
+    + event Action<Rigidbody> PickedUp
+    + event Func<Rigidbody,bool> DropInterceptor
+  }
+  class HandGrabController <<Controller>> #FDEBD0 {
+    - HandTracker _handTracker
+    - Rigidbody _rigidbody
+    - bool _isHolding
+    + IsHandOverObject() : bool
+  }
+  class HandIndicator <<View>> {
+    - HandTracker _handTracker
+    - ParticleSystem _particles
+    - HandGrabManager _grabManager
+    - Color _open/_closed/_over/_holding
+  }
+  class CameraPreviewWindow <<View>> {
+    - HandTracker _handTracker
+    - RawImage _rawImage
+    - bool _mirrorPreview
+  }
 }
 
 package "Player" {
-  class Player <<Controller+Model>> #F8E0E0
-  class PlayerLookAt <<Controller+View>> #F8E0E0
-  class PlayerAnimator <<View>>
+  class Player <<Controller+Model>> #F8E0E0 {
+    - Rigidbody rb
+    - float _walkSpeed / _runSpeed
+    - AnimationCurve _speedCurve
+    - float _acceleration / _friction
+    + bool RotateToMovement { set }
+    + bool IsBusy { set }
+    + OnMove(InputValue)
+  }
+  class PlayerLookAt <<Controller+View>> #F8E0E0 {
+    - HandTracker _handTracker
+    - Camera _camera
+    - Player _player
+    - Rigidbody _rb
+    - Animator _animator
+    + Vector3 Facing
+    + SetBusy(bool)
+  }
+  class PlayerAnimator <<View>> {
+    - Animator _animator
+    - Rigidbody _rb
+    - float _runSpeed
+  }
 }
 
 package "Puzzles" {
-  class PuzzleManager <<Controller+Model+View>> #F8D0D0
-  class PuzzleSlot <<Model+View>> #F8E0E0
-  class PuzzlePiece <<Model>>
+  class PuzzleManager <<Controller+Model+View>> #F8D0D0 {
+    - PuzzleSlot[] _slots
+    - HandGrabManager _grabManager
+    - bool _showGhostPreviews
+    - GameObject _rewardPrefab
+    - bool IsComplete
+    + event Completed
+    + HandlePickedUp(Rigidbody)
+    + HandleDropInterceptor(Rigidbody) : bool
+  }
+  class PuzzleSlot <<Model+View>> #F8E0E0 {
+    - string _acceptedPieceId
+    - float _snapRadius
+    - GameObject _ghostPreview
+    + PuzzlePiece Occupant
+    + bool IsCorrect
+    + CanAccept(piece) : bool
+    + Fill(piece)
+    + Clear(piece)
+    + UpdateGhost()
+  }
+  class PuzzlePiece <<Model>> {
+    - string _pieceId
+    - Rigidbody _rb
+    + string PieceId
+    + bool IsLocked
+    + bool IsSnapping
+    + PuzzleSlot CurrentSlot
+    + Lock()
+  }
 }
 
 package "Interactables (NuiGrab)" {
-  class Breakable <<Controller+Model+View>> #F8D0D0
-  class Fragment <<Model+View>> #FDEBD0
+  class Breakable <<Controller+Model+View>> #F8D0D0 {
+    - float _breakSpeed
+    - bool _breakOnFloor
+    - int _fragmentGrid
+    - GameObject[] _fragmentPrefabsOverride
+    + event Action<Breakable> OnBroken
+    + bool IsBroken
+    + float BreakSpeed
+    + bool BreaksOnFloor
+    + Break(Vector3, Vector3)
+  }
+  class Fragment <<Model+View>> #FDEBD0 {
+    - float _lifetime
+    - float _shrinkDuration
+    + Init(float lifetime)
+  }
 }
 
 package "Camara" {
-  class TopDownCamera <<View>>
+  class TopDownCamera <<View>> {
+    - Transform _target
+    - float _height / _distance / _tiltAngle
+  }
 }
 
 class Rigidbody <<Unity Engine>>
@@ -47,148 +145,6 @@ class Animator <<Unity Engine>>
 class Camera <<Unity Engine>>
 class RawImage <<Unity UI>>
 class ParticleSystem <<Unity Engine>>
-
-' --- Atributos / metodos clave (resumidos) ---
-
-PuzzleManager {
-  - PuzzleSlot[] _slots
-  - HandGrabManager _grabManager
-  - bool _showGhostPreviews
-  - GameObject _rewardPrefab
-  - bool IsComplete
-  + event Completed
-  + HandlePickedUp(Rigidbody)
-  + HandleDropInterceptor(Rigidbody) : bool
-  - SnapRoutine(piece, slot)
-  - CheckCompletion()
-  - SpawnReward()
-}
-
-PuzzleSlot {
-  - string _acceptedPieceId
-  - float _snapRadius
-  - GameObject _ghostPreview
-  + PuzzlePiece Occupant
-  + bool IsCorrect
-  + CanAccept(piece) : bool
-  + Fill(piece)
-  + Clear(piece)
-  + UpdateGhost()
-}
-
-PuzzlePiece {
-  - string _pieceId
-  - Rigidbody _rb (Requerido)
-  + string PieceId
-  + bool IsLocked
-  + bool IsSnapping
-  + PuzzleSlot CurrentSlot
-  + Lock()
-}
-
-HandGrabManager {
-  - HandTracker _handTracker
-  - Camera _camera
-  - Rigidbody _held / _hovered
-  - float _followSpeed / _targetSmoothing
-  - LayerMask _grabLayerMask
-  + bool IsHolding / IsHoveringObject
-  + Rigidbody Held
-  + Vector3 HeldVelocity
-  + event Action<Rigidbody> PickedUp
-  + event Func<Rigidbody,bool> DropInterceptor
-  - MoveToHand()
-  - NotifyImpactWhileHeld()
-  + ForceRelease()
-  - SetGlow() / ClearGlow()
-}
-
-HandGrabController {
-  - HandTracker _handTracker
-  - Rigidbody _rigidbody (Requerido)
-  - bool _isHolding
-  + IsHandOverObject() : bool
-}
-
-HandTracker {
-  - GameObject _bootstrapPrefab
-  - float _closeThreshold
-  + bool IsHandDetected
-  + bool IsHandClosed
-  + float Openness
-  + Vector2 HandViewportPosition
-  + Texture PreviewTexture
-}
-
-Player {
-  - Rigidbody rb (Requerido)
-  - float _walkSpeed / _runSpeed
-  - AnimationCurve _speedCurve
-  - float _acceleration / _friction
-  + bool RotateToMovement { set }
-  + bool IsBusy { set }
-  + OnMove(InputValue)
-  - FixedUpdate(): cinematica + rotacion
-}
-
-PlayerLookAt {
-  - HandTracker _handTracker
-  - Camera _camera
-  - Player _player
-  - Rigidbody _rb
-  - Animator _animator
-  + Vector3 Facing
-  + SetBusy(bool)
-  - ComputeCursor() : Vector3
-  - ApplyLookWeight()
-}
-
-PlayerAnimator {
-  - Animator _animator
-  - Rigidbody _rb (Requerido)
-  - float _runSpeed
-  - SetFloat(MoveZ/MoveX)
-}
-
-Breakable {
-  - float _breakSpeed
-  - bool _breakOnFloor
-  - int _fragmentGrid
-  - GameObject[] _fragmentPrefabsOverride
-  + event Action<Breakable> OnBroken
-  + bool IsBroken
-  + float BreakSpeed
-  + bool BreaksOnFloor
-  + Break(Vector3, Vector3)
-  - SpawnFragments()
-}
-
-Fragment {
-  - float _lifetime
-  - float _shrinkDuration
-  + Init(float lifetime)
-}
-
-HandIndicator {
-  - HandTracker _handTracker
-  - ParticleSystem _particles
-  - HandGrabManager _grabManager
-  - Color _open/_closed/_over/_holding
-  - Update(): posicion + color segun estado
-}
-
-CameraPreviewWindow {
-  - HandTracker _handTracker
-  - RawImage _rawImage
-  - bool _mirrorPreview
-  - Update(): textura webcam + espejo
-}
-
-TopDownCamera {
-  - Transform _target
-  - float _height / _distance / _tiltAngle
-  - LateUpdate(): sigue al jugador
-}
 
 ' --- Relaciones ---
 
