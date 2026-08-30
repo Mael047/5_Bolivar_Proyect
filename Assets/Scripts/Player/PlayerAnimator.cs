@@ -27,8 +27,22 @@ public class PlayerAnimator : MonoBehaviour
 
         var horizontalVelocity = new Vector3(_rb.linearVelocity.x, 0f, _rb.linearVelocity.z);
 
-        var moveZ = Vector3.Dot(horizontalVelocity, transform.forward) / _runSpeed;
-        var moveX = Vector3.Dot(horizontalVelocity, transform.right) / _runSpeed;
+        var moveZ = Vector3.Dot(horizontalVelocity, transform.forward);
+        var moveX = Vector3.Dot(horizontalVelocity, transform.right);
+
+        if (moveZ * moveZ + moveX * moveX < 0.01f)
+        {
+            moveZ = 0f;
+            moveX = 0f;
+        }
+        else
+        {
+            var runRow = 1.7f;
+            var divisor = _runSpeed / runRow;
+
+            moveZ = Mathf.Clamp(moveZ / divisor, -1.7f, 1.7f);
+            moveX = Mathf.Clamp(moveX / divisor, -1.7f, 1.7f);
+        }
 
         _animator.SetFloat("MoveZ", moveZ);
         _animator.SetFloat("MoveX", moveX);

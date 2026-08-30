@@ -45,6 +45,13 @@ namespace NuiGrab
 
     public bool MirrorX => _mirrorX;
 
+    private void Awake()
+    {
+      // Silencia el log verboso interno de MediaPipe (info/debug) para no
+      // ensuciar la consola ni los logs del build; solo pasan errores.
+      Mediapipe.Logger.MinLogLevel = Mediapipe.Logger.LogLevel.Error;
+    }
+
     /// <summary>Textura actual de la camara (para previsualizacion en UI).</summary>
     public Texture PreviewTexture => _imageSource != null && _imageSource.isPrepared ? _imageSource.GetCurrentTexture() : null;
 

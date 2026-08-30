@@ -1,0 +1,98 @@
+@startuml 02_componentes_actual
+' Diagrama de componentes de la arquitectura actual (as-is).
+' Muestra los subsistemas y sus canales de comunicacion:
+'   - datos de entrada (sensor MediaPipe + Input System)
+'   - interaccion (agarre)
+'   - logica de juego por subsistema (Player / Puzzles / Interactables)
+'   - presentacion (indicadores, preview, camara)
+' Las interfaces con "()" son eventos (patron publish/subscribe del codigo actual).
+
+skinparam componentStyle rectangle
+skinparam component {
+  BackgroundColor #FDF6E3
+  BorderColor #806E4A
+}
+title "Arquitectura actual - Componentes y comunicacion (as-is)"
+
+' ---------- ENTRADA / SENSORES ----------
+package "ENTRADA (sensores e input)" {
+  component [MediaPipe Bootstrap\n+ WebCam] as BOOT
+  component [HandTracker\n(estado de la mano)] as HT
+  component [Input System\nPlayerInput.OnMove] as INPUT
+}
+
+' ---------- INTERACCION ----------
+package "INTERACCION (agarre por mano)" {
+  component [HandGrabManager\n(raycast, grab/release, glow)] as HGM
+  component [HandGrabController\n(legacy por-objeto)] as HGC
+  interface "PickedUp\nRigidbody" as EV_PICK
+  interface "DropInterceptor\nRigidbody -> bool" as EV_DROP
+}
+
+' ---------- JUGADOR ----------
+package "JUGADOR" {
+  component [Player\n(movimiento/cinematica)] as P
+  component [PlayerLookAt\n(giro + look-at)] as PLA
+  component [PlayerAnimator\n(animacion)] as PANC
+}
+
+' ---------- PUZZLES ----------
+package "PUZZLES" {
+  component [PuzzleManager\n(match + snap + completar)] as PM
+  component [PuzzleSlot\n(estado del hueco + ghost)] as PS
+  component [PuzzlePiece\n(pieza fisica)] as PP
+  interface "Completed\nPuzzleManager" as EV_DONE
+}
+
+' ---------- INTERACTABLES / MUNDO ----------
+package "INTERACTABLES / MUNDO" {
+  component [Breakable\n(reglas de rotura)] as BK
+  component [Fragment\n(pedazos fisicos)] as FR
+}
+
+' ---------- PRESENTACION ----------
+package "PRESENTACION (vistas)" {
+  component [HandIndicator\n(particulas)] as HI
+  component [CameraPreviewWindow\n(preview webcam)] as CPW
+  component [TopDownCamera\n(camara de escena)] as TDC
+}
+
+' --- flujo de datos de entrada ---
+BOOT --> HT : "modelo cargado"
+HT --> HGM : "mano (viewport, abierta/cerrada)"
+HT --> PLA : "mano (look-at / giro)"
+HT --> HI : "posicion de la mano"
+HT --> CPW : "textura webcam"
+INPUT --> P : "Move (Vector2)"
+
+' --- agarre y eventos ---
+HGM -r-> EV_PICK
+EV_PICK ..> PM : "PickedUp"
+HGM -r-> EV_DROP
+EV_DROP ..> PM : "DropInterceptor"
+HGM ..> BK : "NotifyImpactWhileHeld\n(velocidad estimada)"
+
+' --- logica de puzzle ---
+PM ..> PS : "Fill / Clear / ghost"
+PS ..> PP : "Occupant"
+PM -l-> EV_DONE
+EV_DONE ..> [Game Flow\n(consumidor a futuro)] : "Completed"
+
+' --- mundo fisico ---
+BK ..> FR : "instancia fragmentos"
+
+' --- jugador ---
+P ..> PANC : "velocidad del Rigidbody"
+PLA ..> P : "RotateToMovement=false"
+
+' --- presentacion ---
+TDC ..> P : "posicion del jugador"
+
+legend left
+  Interfaces "()" = eventos (publish/subscribe):
+  - HandGrabManager emite PickedUp y DropInterceptor; PuzzleManager los consume.
+  - La mano (sensor) alimenta directo a varias vistas: el estado no pasa por
+    un controlador central => responsabilidades mezcladas.
+end legend
+
+@enduml

@@ -41,6 +41,13 @@ public class PlayerLookAt : MonoBehaviour
 
     private bool HasHand => _handTracker != null && _handTracker.IsHandDetected;
 
+    private bool _busy;
+
+    public void SetBusy(bool busy)
+    {
+        _busy = busy;
+    }
+
     private void Awake()
     {
         _player = GetComponent<Player>();
@@ -69,8 +76,9 @@ public class PlayerLookAt : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (!HasHand)
+        if (!HasHand || _busy)
         {
+            Facing = transform.forward;
             return;
         }
 

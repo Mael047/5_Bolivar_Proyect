@@ -37,18 +37,30 @@ public class Player : MonoBehaviour
     /// </summary>
     public bool RotateToMovement { get; set; } = true;
 
+    /// <summary>
+    /// Cuando es true (p.ej. durante un ataque), el personaje no se mueve ni rota.
+    /// </summary>
+    public bool IsBusy { get; set; }
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
     }
 
-    public void OnMovement(InputAction.CallbackContext context)
+    /// <summary>Llamado por PlayerInput (modo Send Messages) con la accion "Move".</summary>
+    public void OnMove(InputValue value)
     {
-        moveInput = context.ReadValue<Vector2>();
+        moveInput = value.Get<Vector2>();
     }
 
     private void FixedUpdate()
     {
+        if (IsBusy)
+        {
+            rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
+            return;
+        }
+
         var input = Vector2.ClampMagnitude(moveInput, 1f);
         var magnitude = input.magnitude;
 

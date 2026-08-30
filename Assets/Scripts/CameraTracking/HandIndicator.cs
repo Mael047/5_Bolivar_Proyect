@@ -37,7 +37,7 @@ namespace NuiGrab
     private ParticleSystem.SizeOverLifetimeModule _sizeOverLifetime;
     private ParticleSystem.ColorOverLifetimeModule _colorOverLifetime;
     private ParticleSystemRenderer _renderer;
-    private HandGrabController _grabController;
+    private HandGrabManager _grabManager;
     private bool _wasVisible;
 
     private void Awake()
@@ -57,7 +57,7 @@ namespace NuiGrab
         _particles = GetComponent<ParticleSystem>();
       }
 
-      _grabController = FindAnyObjectByType<HandGrabController>();
+      _grabManager = FindAnyObjectByType<HandGrabManager>();
 
       if (_particles != null)
       {
@@ -136,13 +136,13 @@ namespace NuiGrab
         color = _closedColor;
       }
 
-      if (_grabController != null)
+      if (_grabManager != null)
       {
-        if (_grabController.IsHolding)
+        if (_grabManager.IsHolding)
         {
           color = _holdingColor;
         }
-        else if (_handTracker.IsHandClosed && _grabController.IsHandOverObject())
+        else if (_handTracker.IsHandClosed && _grabManager.IsHoveringObject)
         {
           color = _overCubeColor;
         }
