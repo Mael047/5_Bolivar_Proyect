@@ -189,3 +189,57 @@ graph TD
     M_Health -.->|Notifica muerte / Mantiene vida| C_Player
     M_Health -.->|Notifica muerte / Destruye GameObject| C_Enemy
 ```
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Player as Jugador (Input)
+    participant PScript as Player.cs
+    participant Anim as Animator
+    participant Hitbox as MeleeHitbox.cs
+    participant Health as Health.cs (Enemigo)
+
+    Player->>PScript: Presiona botón "Attack"
+    PScript->>Anim: Trigger("Attack")
+    Note over Anim: Reproduce animación de ataque
+    Anim->>PScript: Animation Event: AE_StartAttack()
+    PScript->>Hitbox: EnableHitbox()
+    Note over Hitbox: Activa Collider en trigger
+    Hitbox->>Health: OnTriggerEnter() -> TakeDamage(damage)
+    Health->>Health: Resta currentHealth - damage
+    alt Salud <= 0
+        Health->>Health: Die() (Destruye GameObject)
+    end
+    Anim->>PScript: Animation Event: AE_EndAttack()
+    PScript->>Hitbox: DisableHitbox()
+```
+```mermaid
+stateDiagram-v2
+    [*] --> Patrulla : Start / Awake
+
+    state Patrulla {
+        [*] --> Esperando : Cronómetro < 3s
+        Esperando --> Girando : Cronómetro >= 3s (Rutina 1)
+        Girando --> Moviendo : Ángulo aleatorio elegido (Rutina 2)
+        Moviendo --> Esperando : Fin del movimiento
+    }
+
+    Patrulla --> Persecucion : CanSeePlayer() == true
+    note right of Persecucion
+        Cambia música a Combate
+        (AudioManager.SetCombatState)
+    end note
+
+    state Persecucion {
+        [*] --> Acercandose : Distancia > 1m
+        Acercandose --> PreparandoAtaque : Distancia <= 1m
+    }
+
+    Persecucion --> Ataque : attack = true
+    Ataque --> Persecucion : Final_Ani() llamado
+
+    Persecucion --> Patrulla : CanSeePlayer() == false
+    note left of Patrulla
+        Restaura música Ambiental
+        (AudioManager.SetCombatState)
+    end note
+```
