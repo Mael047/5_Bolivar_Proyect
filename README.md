@@ -213,10 +213,10 @@ sequenceDiagram
     PScript->>Hitbox: EnableHitbox()
     Hitbox->>Health: OnTriggerEnter() -> TakeDamage(damage)
     
-    alt Si currentHealth <= 0
-        Health->>Health: Die() (Destruir GameObject)
-    else Si currentHealth > 0
-        Health->>Health: Restar daño a vida
+    alt currentHealth <= 0
+        Health-->>Health: Llama a Die() y destruye GameObject
+    else currentHealth > 0
+        Note over Health: Resta el daño a currentHealth
     end
 
     Anim->>PScript: Evento: AE_EndAttack()
