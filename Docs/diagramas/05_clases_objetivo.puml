@@ -1,0 +1,160 @@
+@startuml 05_clases_objetivo
+' Diagrama de clases de la arquitectura OBJETIVO (diseño MVC bajo adaptacion Unity).
+' Reglas de la adaptacion:
+'   - MODEL  : clases C# puras (sin MonoBehaviour), datos + reglas, 100% testeables.
+'   - VIEW   : MonoBehaviours que SOLO presentan estado y emiten eventos; sin decisiones.
+'   - CONTROLLER : MonoBehaviours finos que traducen input/eventos en comandos al Model.
+'   - La fisica/Transform (Rigidbody, Animator, ParticleSystem) es infraestructura
+'     del engine que gestionan las Vistas; nunca entra en el Model.
+' Direccion de dependencias: Controller --> Model (comandos), Model --> View (eventos).
+
+skinparam classAttributeIconSize 0
+skinparam class {
+  BackgroundColor #E8F5E9
+  BorderColor #2E7D32
+}
+skinparam stereotypeCBackgroundColor #C8E6C9
+title "Arquitectura objetivo - MVC (diseño)"
+
+package "MODEL (C# puro, sin Unity)" {
+  class HandInputModel {
+    + bool IsHandDetected
+    + Vector2 HandViewportPosition
+    + bool IsHandClosed
+    + float Openness
+    + Update(detected, position, closed)
+  }
+
+  class PlayerMoveModel {
+    + float WalkSpeed / RunSpeed
+    + float Acceleration / Friction
+    + bool IsBusy
+    + bool RotateToMovement
+    + Vector3 TargetVelocity(input2D, facing)
+    + SetBusy(bool)
+  }
+
+  class PuzzleModel {
+    + List<PieceModel> Pieces
+    + List<SlotState> Slots
+    + bool IsComplete
+    + bool PlacePiece(pieceId, slotIndex)
+    + bool Validate()
+    + void ClearSlot(pieceId)
+  }
+
+  class PieceModel {
+    + string PieceId
+    + bool IsLocked
+    + bool IsSnapping
+    + int SlotIndex
+  }
+
+  class BreakableModel {
+    + float BreakSpeed
+    + bool BreaksOnFloor
+    + bool IsBroken
+    + bool CanBreak(impactSpeed, isFloorHit)
+  }
+}
+
+package "CONTROLLER (MonoBehaviour finos: input -> comandos)" {
+  class GrabController {
+    - HandInputModel _hand
+    + bool IsHolding
+    + Vector3 HeldVelocity
+    + Grab(target) / Release(target)
+    + event GrabStateChanged
+  }
+
+  class PuzzleController {
+    - PuzzleModel _model
+    + OnDropIntercept(Rigidbody) : bool
+    + StartSnap(pieceId, slotIndex)
+    + Complete()
+    + event PuzzleStateChanged
+  }
+
+  class PlayerController {
+    - PlayerMoveModel _model
+    + OnMove(InputValue)
+    + SetBusy(bool)
+  }
+
+  class BreakController {
+    - BreakableModel _model
+    + OnImpact(velocity, isFloorHit)
+    + Break(point, impulse)
+    + event Broken
+  }
+}
+
+package "VIEW (MonoBehaviour de presentacion)" {
+  class PlayerView {
+    - Animator _animator
+    + RefreshMoveParams(PlayerMoveModel)
+    + ApplyLookAt()
+  }
+
+  class PuzzleView {
+    - PuzzleSlotView[] _slots
+    + ShowGhost(state)
+    + PlaySnapTween(pieceId)
+    + SpawnReward()
+    + OnStateChanged(PuzzleModel)
+  }
+
+  class GrabFeedbackView {
+    + SetHover(rigidbody) / SetHeld(rigidbody)
+    + UpdateIndicator()
+  }
+
+  class CameraView {
+    + Follow(target)
+    + ShowPreview(Texture)
+  }
+}
+
+package "ADAPTADORES DE ENTRADA" {
+  class HandTrackerAdapter {
+    - HandInputModel _model
+    + Espera: MediaPipe -> escribe estado en _model
+  }
+
+  class InputSystemAdapter {
+    - PlayerController _controller
+    + OnMove(InputValue) -> PlayerController
+  }
+}
+
+' --- direccion de dependencias ---
+
+HandTrackerAdapter --> HandInputModel : "escribe estado"
+InputSystemAdapter --> PlayerController : "reenvia input"
+
+GrabController --> HandInputModel : "lee mano"
+GrabController --> PuzzleController : "eventos Grab/Drop"
+PuzzleController "1" *-- "1" PuzzleModel : "comandos"
+PlayerController "1" *-- "1" PlayerMoveModel : "comandos"
+BreakController "1" *-- "1" BreakableModel : "comandos"
+PuzzleController o-- PieceModel : "gestiona"
+
+PuzzleView ..> PuzzleModel : "lee estado (eventos)"
+GrabFeedbackView ..> GrabController : "lee estado (eventos)"
+PlayerView ..> PlayerMoveModel : "lee estado (eventos)"
+BreakController --> PuzzleView : "notifica Broken\n(regla opcional)"
+
+note bottom of PuzzleModel
+  El Model es independiente de Unity: cualquier
+  servicio externo (UI, pruebas, red) puede
+  consultarlo y actuar sin tocar la escena.
+end note
+
+legend left
+  MODEL: verde (C# puro, testeable)
+  CONTROLLER/VIEW/ADAPTER: MonoBehaviours conectados a la escena
+  Dependencia: Controller -> Model; View <- Model (eventos).
+  La fisica/Transform vive en View y Controller, nunca en el Model.
+endlegend
+
+@enduml

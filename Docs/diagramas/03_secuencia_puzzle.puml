@@ -1,0 +1,58 @@
+@startuml 03_secuencia_puzzle
+' Diagrama de secuencia: caso de uso "colocar una pieza del puzzle con la mano".
+' Flujo real del codigo actual:
+'   mano cerrada -> agarre (PickedUp) -> arrastre -> mano abierta -> soltar
+'   -> DropInterceptor -> PuzzleManager decide snap -> Slot.Fill -> completar.
+
+skinparam sequenceArrowThickness 1.5
+skinparam ParticipantBackgroundColor #FDF6E3
+skinparam ParticipantBorderColor #806E4A
+title "Caso de uso: agarrar y encajar una pieza del puzzle"
+
+actor Jugador as USER
+participant "HandTracker" as HT
+participant "HandGrabManager" as HGM
+participant "PuzzlePiece" as PP
+participant "PuzzleManager" as PM
+participant "PuzzleSlot" as PS
+participant "Reward (prefab)" as RW
+
+USER -> HT : "cierra la mano (punio)"
+HT --> HGM : "IsHandDetected / IsHandClosed = true"
+
+HGM -> HGM : "FindTargetUnderHand()\nraycast capa Grabbable"
+HGM -> PP : "consulta IsLocked / IsSnapping"
+alt pieza valida bajo la mano
+  HGM -> HGM : "Grab(rb)\nisKinematic = true"
+  HGM -->> PM : "PickedUp(rb)   [evento]"
+  PM -> PM : "HandlePickedUp()"
+  PM -> PS : "Clear(piece)  (si habia hueco previo)"
+  PS -> PS : "UpdateGhost() -> muestra el fantasma"
+
+  loop por frame (mano cerrada)
+    USER -> HGM : "mueve la mano"
+    HGM -> HGM : "MoveToHand()\nobjeto proyectado en el plano de agarre"
+  end
+
+  USER -> HGM : "abre la mano"
+  HGM -> HGM : "debounce (_gripReleaseDelay)"
+  HGM -->> PM : "DropInterceptor(rb)   [evento interceptor]"
+  PM -> PM : "FindNearestFreeSlot(piece)"
+  alt existe slot libre y dentro del radio de snap
+    PM -> PM : "SnapRoutine()\nkinematic + tween posicion/rotacion"
+    PM -> PS : "Fill(piece)\nOccupant = piece, UpdateGhost()"
+    PM -> PM : "CheckCompletion()"
+    alt todos los slots correctos
+      PM -> PP : "Lock()  (piezas bloqueadas)"
+      PM -->> RW : "Completed(this)   [evento]"
+      PM -> RW : "InstantiateReward()"
+    end
+    HGM <-- PM : "return true (drop consumido, sin gravedad)"
+  else no hay slot cercano
+    HGM <-- PM : "return false -> se reactiva la gravedad"
+  end
+else pieza no agarrable (bloqueada/snap)
+  HGM -> HGM : "no agarra"
+end
+
+@enduml

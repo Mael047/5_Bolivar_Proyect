@@ -1,0 +1,47 @@
+@startuml 04_secuencia_romper
+' Diagrama de secuencia: caso de uso "romper un objeto agarrado estampandolo".
+' Flujo real del codigo actual:
+'   el objeto kinematico agarrado avanza con un SphereCast; al frenar contra una
+'   superficie, HandGrabManager notifica el impacto con la velocidad estimada y
+'   Breakable decide romperse (o no) segun su umbral.
+
+skinparam sequenceArrowThickness 1.5
+skinparam ParticipantBackgroundColor #FDF6E3
+skinparam ParticipantBorderColor #806E4A
+title "Caso de uso: romper un objeto agarrado contra una superficie"
+
+actor Jugador as USER
+participant "HandTracker" as HT
+participant "HandGrabManager" as HGM
+participant "Breakable\n(objeto agarrado)" as BK
+participant "Fragment[]\n(pedazos)" as FR
+
+USER -> HT : "mano detectada + cerrada"
+HT --> HGM : "estado de mano"
+
+HGM -> BK : "Grab(rb)\nisKinematic = true"
+
+loop por frame (mano cerrada)
+  USER -> HGM : "mueve la mano rapido hacia el muro"
+  HGM -> HGM : "MoveToHand()\nSphereCast(_collisionBlockers)"
+  alt frenado por una superficie solida
+    HGM -> HGM : "NotifyImpactWhileHeld(hit, velocidad estimada)"
+    HGM -> BK : "consulto BreakSpeed / IsBroken / BreaksOnFloor"
+    alt es golpe valido y supera el umbral
+      HGM -> BK : "Break(punto, direccion * velocidad)"
+      BK -> BK : "_broken = true"
+      BK -> HGM : "IsHoldingBody(_rb)? -> ForceRelease()\n(libera la mano)"
+      BK -> FR : "Instanciar + Init(lifetime)\n(velocidad heredada + explosion)"
+      BK -->> HGM : "OnBroken   [evento]"
+      BK -> BK : "Destroy(gameObject)"
+      FR -> FR : "flota/rueda -> encoge -> Destroy"
+    else no cumple umbral o es el suelo
+      BK -> HGM : "no rompe (solo frena el avance)"
+    end
+  end
+end
+
+USER -> HGM : "abre la mano (si sigue entero)"
+HGM -> BK : "Release()\nisKinematic = false + velocidad heredada (lanza)"
+
+@enduml

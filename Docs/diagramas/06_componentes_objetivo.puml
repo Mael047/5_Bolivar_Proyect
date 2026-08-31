@@ -1,0 +1,88 @@
+@startuml 06_componentes_objetivo
+' Diagrama de componentes de la arquitectura OBJETIVO (diseño MVC, adaptacion Unity).
+' Tres capas + adaptadores de entrada:
+'   - ENTRADA/SENSORES : loop de la webcam/MediaPipe e Input System.
+'   - CONTROLADOR      : traduce input en comandos (finos, sin reglas de negocio).
+'   - MODELO           : reglas y estado (C# puro, desacoplado de Unity).
+'   - VISTA            : solo presenta el estado via eventos.
+
+skinparam componentStyle rectangle
+skinparam component {
+  BackgroundColor #E8F5E9
+  BorderColor #2E7D32
+}
+skinparam rectangle {
+  BackgroundColor #FDF6E3
+  BorderColor #806E4A
+}
+title "Arquitectura objetivo - Capas MVC (diseño)"
+
+' ---------- ENTRADA / SENSORES ----------
+package "ENTRADA / SENSORES" {
+  component [MediaPipe HandTracker\n(webcam + landmarker)] as SENSOR
+  component [Input System\n(PlayerInput)] as INPUT
+}
+
+' ---------- CONTROLADOR ----------
+package "CONTROLADOR (traduce input -> comandos)" {
+  component [GrabController] as C_GRAB
+  component [PlayerController] as C_PLAYER
+  component [PuzzleController] as C_PUZZLE
+  component [BreakController] as C_BREAK
+  interface "GrabStateChanged" as EV_GRAB
+  interface "PuzzleStateChanged" as EV_PUZZLE
+  interface "Broken" as EV_BROKEN
+}
+
+' ---------- MODELO ----------
+package "MODELO (reglas y estado - C# puro, sin Unity)" {
+  component [HandInputModel] as M_HAND
+  component [PlayerMoveModel] as M_PLAYER
+  component [PuzzleModel] as M_PUZZLE
+  component [BreakableModel] as M_BREAK
+}
+
+' ---------- VISTA ----------
+package "VISTA (presentacion - MonoBehaviour)" {
+  component [GrabFeedbackView\n(glow + indicador)] as V_GRAB
+  component [PlayerView\n(animator + look-at)] as V_PLAYER
+  component [PuzzleView\n(slots + ghost + reward)] as V_PUZZLE
+  component [CameraView\n(top-down + preview)] as V_CAM
+  component [Escena / Fisica\n(Rigidbody, Transform, ParticleSystem)] as V_SCENE
+}
+
+' --- flujo de entrada hacia los controladores ---
+SENSOR --> M_HAND : "escribe estado de la mano"
+SENSOR --> V_CAM : "textura webcam"
+INPUT --> C_PLAYER : "Move (Vector2)"
+
+' --- controladores leen el modelo ---
+C_GRAB --> M_HAND : "lee mano"
+C_PLAYER --> M_PLAYER : "comandos de movimiento"
+C_PUZZLE --> M_PUZZLE : "PlacePiece / Validate"
+C_BREAK --> M_BREAK : "CanBreak"
+
+' --- controladores emiten eventos de estado ---
+C_GRAB -l-> EV_GRAB
+C_PUZZLE -r-> EV_PUZZLE
+C_BREAK -l-> EV_BROKEN
+
+' --- vistas se suscriben a los eventos ---
+EV_GRAB ..> V_GRAB
+EV_PUZZLE ..> V_PUZZLE
+EV_BREAK ..> V_PUZZLE : "(si el premio nace de la rotura)"
+M_PLAYER ..> V_PLAYER : "evento de estado"
+
+' --- vistas operan sobre la infraestructura del engine ---
+V_PLAYER --> V_SCENE : "anima"
+V_GRAB --> V_SCENE : "mueve objeto agarrado / glow"
+V_PUZZLE --> V_SCENE : "tween de snap / instancia pedazos / premio"
+V_CAM --> V_SCENE : "sigue objetivo"
+
+legend left
+  Flujo: input/sensor -> Controlador -> Modelo -> (evento) -> Vista -> Engine.
+  El Modelo NO conoce Unity: ni MonoBehaviour, ni Transform, ni eventos del UI.
+  Se puede sustituir una Vista (UI por otra) sin tocar el Modelo.
+endlegend
+
+@enduml

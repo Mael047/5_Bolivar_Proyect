@@ -1,0 +1,196 @@
+@startuml 01_clases_actual
+' Diagrama de clases del codigo actual (as-is).
+' Mapeo NOMINAL de cada clase a Model / View / Controller segun la adaptacion Unity:
+'   Model  = datos + reglas (aunque hoy viven en MonoBehaviours)
+'   View   = solo presenta estado / emite eventos
+'   Controller = traduce input/eventos en comandos y decisiones
+' Marca de cumplimiento: (OK) rol limpio | (MIX) rol mezclado en la misma clase.
+
+skinparam classAttributeIconSize 0
+skinparam class {
+  BackgroundColor #FDF6E3
+  BorderColor #806E4A
+}
+
+title Diagrama Nominal a MVC (as-is)
+
+package "CameraTracking (NuiGrab)" {
+  class HandTracker <<Controller\\n(sensor/input)>> {
+    - GameObject _bootstrapPrefab
+    - float _closeThreshold
+    + bool IsHandDetected
+    + bool IsHandClosed
+    + float Openness
+    + Vector2 HandViewportPosition
+    + Texture PreviewTexture
+  }
+  class HandGrabManager <<Controller+View>> #F8E0E0 {
+    - HandTracker _handTracker
+    - Camera _camera
+    - Rigidbody _held / _hovered
+    - float _followSpeed / _targetSmoothing
+    - LayerMask _grabLayerMask
+    + bool IsHolding / IsHoveringObject
+    + Rigidbody Held
+    + Vector3 HeldVelocity
+    + event Action<Rigidbody> PickedUp
+    + event Func<Rigidbody,bool> DropInterceptor
+  }
+  class HandGrabController <<Controller>> #FDEBD0 {
+    - HandTracker _handTracker
+    - Rigidbody _rigidbody
+    - bool _isHolding
+    + IsHandOverObject() : bool
+  }
+  class HandIndicator <<View>> {
+    - HandTracker _handTracker
+    - ParticleSystem _particles
+    - HandGrabManager _grabManager
+    - Color _open/_closed/_over/_holding
+  }
+  class CameraPreviewWindow <<View>> {
+    - HandTracker _handTracker
+    - RawImage _rawImage
+    - bool _mirrorPreview
+  }
+}
+
+package "Player" {
+  class Player <<Controller+Model>> #F8E0E0 {
+    - Rigidbody rb
+    - float _walkSpeed / _runSpeed
+    - AnimationCurve _speedCurve
+    - float _acceleration / _friction
+    + bool RotateToMovement { set }
+    + bool IsBusy { set }
+    + OnMove(InputValue)
+  }
+  class PlayerLookAt <<Controller+View>> #F8E0E0 {
+    - HandTracker _handTracker
+    - Camera _camera
+    - Player _player
+    - Rigidbody _rb
+    - Animator _animator
+    + Vector3 Facing
+    + SetBusy(bool)
+  }
+  class PlayerAnimator <<View>> {
+    - Animator _animator
+    - Rigidbody _rb
+    - float _runSpeed
+  }
+}
+
+package "Puzzles" {
+  class PuzzleManager <<Controller+Model+View>> #F8D0D0 {
+    - PuzzleSlot[] _slots
+    - HandGrabManager _grabManager
+    - bool _showGhostPreviews
+    - GameObject _rewardPrefab
+    - bool IsComplete
+    + event Completed
+    + HandlePickedUp(Rigidbody)
+    + HandleDropInterceptor(Rigidbody) : bool
+  }
+  class PuzzleSlot <<Model+View>> #F8E0E0 {
+    - string _acceptedPieceId
+    - float _snapRadius
+    - GameObject _ghostPreview
+    + PuzzlePiece Occupant
+    + bool IsCorrect
+    + CanAccept(piece) : bool
+    + Fill(piece)
+    + Clear(piece)
+    + UpdateGhost()
+  }
+  class PuzzlePiece <<Model>> {
+    - string _pieceId
+    - Rigidbody _rb
+    + string PieceId
+    + bool IsLocked
+    + bool IsSnapping
+    + PuzzleSlot CurrentSlot
+    + Lock()
+  }
+}
+
+package "Interactables (NuiGrab)" {
+  class Breakable <<Controller+Model+View>> #F8D0D0 {
+    - float _breakSpeed
+    - bool _breakOnFloor
+    - int _fragmentGrid
+    - GameObject[] _fragmentPrefabsOverride
+    + event Action<Breakable> OnBroken
+    + bool IsBroken
+    + float BreakSpeed
+    + bool BreaksOnFloor
+    + Break(Vector3, Vector3)
+  }
+  class Fragment <<Model+View>> #FDEBD0 {
+    - float _lifetime
+    - float _shrinkDuration
+    + Init(float lifetime)
+  }
+}
+
+package "Camara" {
+  class TopDownCamera <<View>> {
+    - Transform _target
+    - float _height / _distance / _tiltAngle
+  }
+}
+
+class Rigidbody <<Unity Engine>>
+class Animator <<Unity Engine>>
+class Camera <<Unity Engine>>
+class RawImage <<Unity UI>>
+class ParticleSystem <<Unity Engine>>
+
+' --- Relaciones ---
+
+Player *-- Rigidbody
+PlayerLookAt o-- Player : "desactiva RotateToMovement"
+
+PlayerLookAt --> HandTracker : "mano (look-at / giro)"
+PlayerLookAt --> Camera : "rayos viewport"
+PlayerLookAt o-- Animator : "look-at humanoide"
+PlayerAnimator *-- Rigidbody : "velocidad fisica"
+PlayerAnimator --> Animator : "parametros"
+
+HandGrabManager --> HandTracker : "estado de mano"
+HandGrabManager --> Camera : "raycast de agarre"
+HandGrabManager ..> PuzzlePiece : "consulta IsLocked/IsSnapping"
+HandGrabManager ..> Breakable : "NotifyImpactWhileHeld"
+
+PuzzleManager o-- "0..*" PuzzleSlot
+PuzzleSlot "0..1" o-- PuzzlePiece : "Occupant"
+PuzzleManager --> HandGrabManager : "escucha PickedUp / DropInterceptor"
+
+Breakable *-- Rigidbody
+Breakable --> HandGrabManager : "HeldVelocity / ForceRelease"
+Breakable "1" o-- "0..*" Fragment : "spawn"
+
+HandIndicator --> HandTracker : "posicion de la mano"
+HandIndicator --> HandGrabManager : "IsHolding / IsHoveringObject"
+HandIndicator --> ParticleSystem
+
+CameraPreviewWindow --> HandTracker : "PreviewTexture"
+CameraPreviewWindow --> RawImage
+
+TopDownCamera --> Player : "sigue (target)"
+HandGrabController --> HandTracker : "mano"
+HandGrabController *-- Rigidbody
+
+note bottom of HandGrabController
+  HandGrabController es una variante por-objeto
+  (probablemente legada; HandGrabManager concentra
+  el sistema real de agarre).
+end note
+
+legend left
+  (OK) rol limpio en la clase
+  (MIX) rol mezclado: data + reglas + presentacion en la misma clase
+  Estereotipos con fondo rojizo = clases que NO cumplen MVC estricto.
+endlegend
+
+@enduml
