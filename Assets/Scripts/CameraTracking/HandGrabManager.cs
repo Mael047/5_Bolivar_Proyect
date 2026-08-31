@@ -21,6 +21,8 @@ namespace NuiGrab
   {
     [SerializeField] private HandTracker _handTracker;
     [SerializeField] private Camera _camera;
+    [SerializeField, Tooltip("Jugador cuyo ataque bloquea el agarre (si no se asigna, se busca en la escena).")]
+    private global::Player _player;
 
     [SerializeField, Min(0f)] private float _grabRadius = 0.22f;
     [SerializeField, Min(0f)] private float _grabSearchRadius = 0.35f;
@@ -111,6 +113,11 @@ namespace NuiGrab
       {
         _handTracker = FindAnyObjectByType<HandTracker>();
       }
+
+      if (_player == null)
+      {
+        _player = FindAnyObjectByType<global::Player>();
+      }
     }
 
     private void Update()
@@ -145,6 +152,19 @@ namespace NuiGrab
       if (_isHolding && !detectedNow)
       {
         closed = true;
+      }
+
+      // Mientras el jugador ataca no se puede agarrar: se suelta cualquier
+      // objeto ya agarrado y se ignora la mano (no se agarran objetos nuevos).
+      if (_player != null && _player.IsAttacking)
+      {
+        if (_isHolding)
+        {
+          Release();
+        }
+
+        _wasClosed = closed;
+        return;
       }
 
       if (_isHolding)

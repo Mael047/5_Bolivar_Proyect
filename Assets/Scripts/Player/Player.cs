@@ -26,6 +26,8 @@ public class Player : MonoBehaviour
     [Header("Combat")]
     [Tooltip("Multiplicador de velocidad de movimiento mientras ataca (0 = quieto, 1 = velocidad normal).")]
     [SerializeField, Range(0f, 1f)] private float _attackSpeedFactor = 0.4f;
+    [Tooltip("Multiplicador de velocidad de movimiento mientras se cubre con el escudo (0 = quieto, 1 = velocidad normal).")]
+    [SerializeField, Range(0f, 1f)] private float _blockSpeedFactor = 0.5f;
     [SerializeField] private Animator _animator;
 
     [Header("Debug (live)")]
@@ -39,6 +41,7 @@ public class Player : MonoBehaviour
     private PlayerInput _playerInput;
     private bool _isAttacking;
     private bool _hasEnteredAttackState;
+    private bool _blockHeld;
 
     /// <summary>
     /// Cuando es false (mano activa), PlayerLookAt controla el giro del cuerpo;
@@ -57,6 +60,13 @@ public class Player : MonoBehaviour
     /// </summary>
     public bool IsAttacking => _isAttacking;
 
+    /// <summary>
+    /// True mientras el personaje se cubre con el escudo (L1 sostenido). No se
+    /// cubre durante un ataque: atacar cancela el block hasta terminar el ataque.
+    /// </summary>
+    public bool IsBlocking =>
+        _blockHeld && !_isAttacking && !IsInAttackingState() && !IsBusy;
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
@@ -73,6 +83,13 @@ public class Player : MonoBehaviour
         {
             attackAction.performed += OnAttackPerformed;
         }
+
+        var blockAction = _playerInput?.actions?.FindAction("Block", true);
+        if (blockAction != null)
+        {
+            blockAction.started += OnBlockStarted;
+            blockAction.canceled += OnBlockCanceled;
+        }
     }
 
     private void OnDestroy()
@@ -81,6 +98,13 @@ public class Player : MonoBehaviour
         if (attackAction != null)
         {
             attackAction.performed -= OnAttackPerformed;
+        }
+
+        var blockAction = _playerInput?.actions?.FindAction("Block", true);
+        if (blockAction != null)
+        {
+            blockAction.started -= OnBlockStarted;
+            blockAction.canceled -= OnBlockCanceled;
         }
     }
 
@@ -93,6 +117,18 @@ public class Player : MonoBehaviour
     private void OnAttackPerformed(InputAction.CallbackContext context)
     {
         TriggerAttack();
+    }
+
+    /// <summary>Se dispara al presionar L1 (flanco ascendente): comienza a cubrirse.</summary>
+    private void OnBlockStarted(InputAction.CallbackContext context)
+    {
+        _blockHeld = true;
+    }
+
+    /// <summary>Se dispara al soltar L1: deja de cubrirse.</summary>
+    private void OnBlockCanceled(InputAction.CallbackContext context)
+    {
+        _blockHeld = false;
     }
 
     /// <summary>Llamado por PlayerInput (modo Send Messages) con la accion "Move".</summary>
@@ -121,6 +157,14 @@ public class Player : MonoBehaviour
     {
         var attacking = IsInAttackingState();
         _isAttacking = attacking;
+
+        // La capa "BlockLayer" (indice 1) solo se ve mientras el jugador se cubre.
+        // Al atacar o estar ocupado, IsBlocking es false y la capa se apaga, dejando
+        // que el locomotion (piernas) siga sin el escudo en pantalla.
+        if (_animator != null)
+        {
+            _animator.SetLayerWeight(1, IsBlocking ? 1f : 0f);
+        }
 
         if (!attacking)
         {
@@ -184,6 +228,10 @@ public class Player : MonoBehaviour
             if (IsInAttackingState())
             {
                 targetSpeed *= _attackSpeedFactor;
+            }
+            else if (IsBlocking)
+            {
+                targetSpeed *= _blockSpeedFactor;
             }
         }
 
