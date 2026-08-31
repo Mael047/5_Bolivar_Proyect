@@ -1,4 +1,6 @@
-# Arquitectura del Juego - Diagrama de Clases
+# Documentación de Arquitectura y Diseño - Proyecto Bolívar
+
+## 1. Diagrama de Clases (UML)
 
 ```mermaid
 classDiagram
@@ -151,67 +153,80 @@ classDiagram
     PuzzleManager "1" o-- "*" PuzzlePiece : Gestiona piezas en animación/snap
     PuzzleSlot "1" <--> "0..1" PuzzlePiece : Ocupación bidireccional (Occupant / CurrentSlot)
 ```
+
+---
+
+## 2. Arquitectura MVC (Modelo - Controlador - Vista)
+
 ```mermaid
-graph TD
-    subgraph CONTROLLER ["Controladores (Lógica e Inputs)"]
-        C_Player["Player.cs<br/>(InputSystem, Rigidbody, Físicas)"]
-        C_Enemy["Enemy.cs<br/>(IA, Cono de Visión, Detección)"]
-        C_PuzzleMgr["PuzzleManager.cs<br/>(Físicas Snap, Intercepción Drop)"]
+graph LR
+    subgraph MODEL ["Modelo (Datos)"]
+        direction TB
+        M_Health["Health.cs / IDamageable<br/>(Salud, Daño, Muerte)"]
+        M_PuzzleState["PuzzlePiece.cs & PuzzleSlot.cs<br/>(IDs y Ocupación)"]
     end
 
-    subgraph MODEL ["Modelo (Datos y Estado)"]
-        M_Health["Health.cs / IDamageable<br/>(Salud actual, Daño, Muerte)"]
-        M_PuzzleState["PuzzlePiece.cs & PuzzleSlot.cs<br/>(IDs, Ocupación, Bloqueo)"]
+    subgraph CONTROLLER ["Controladores (Lógica)"]
+        direction TB
+        C_Player["Player.cs<br/>(InputSystem, Rigidbody)"]
+        C_Enemy["Enemy.cs<br/>(IA y Visión)"]
+        C_PuzzleMgr["PuzzleManager.cs<br/>(Físicas Snap)"]
     end
 
-    subgraph VIEW ["Vista (Visual, Animación y Audio)"]
-        V_Animator["Animator Controller<br/>(Layers, Triggers Attack/Block)"]
-        V_Hitbox["MeleeHitbox.cs<br/>(Colisiones de Ataque en FX)"]
-        V_Audio["AudioManager.cs<br/>(Música Ambiente / Combate)"]
-        V_Ghosts["Ghost Previews<br/>(Visual de Encaje de Puzzle)"]
+    subgraph VIEW ["Vista (Visual y Audio)"]
+        direction TB
+        V_Animator["Animator Controller"]
+        V_Hitbox["MeleeHitbox.cs"]
+        V_Audio["AudioManager.cs"]
+        V_Ghosts["Ghost Previews"]
     end
 
-    %% Flujos de interacción del Player
-    C_Player -->|Actualiza valores / Aplica daño| M_Health
-    C_Player -->|Dispara Triggers / Weights| V_Animator
-    V_Animator -->|Animation Events AE_Start/EndAttack| V_Hitbox
-    V_Hitbox -->|Dispara TakeDamage| M_Health
+    %% Relaciones
+    C_Player -->|Actualiza| M_Health
+    C_Player -->|Triggers| V_Animator
+    V_Animator -->|AE_Events| V_Hitbox
+    V_Hitbox -->|TakeDamage| M_Health
 
-    %% Flujos del Enemigo
     C_Enemy -->|Detecta Target| V_Audio
-    C_Enemy -->|Ejecuta ataques| M_Health
+    C_Enemy -->|Ataca| M_Health
 
-    %% Flujos del Puzzle
-    C_PuzzleMgr -->|Consulta y cambia estados| M_PuzzleState
-    M_PuzzleState -->|Notifica estado de slots| V_Ghosts
-
-    %% Retroalimentación del Modelo a la Vista/Controlador
-    M_Health -.->|Notifica muerte / Mantiene vida| C_Player
-    M_Health -.->|Notifica muerte / Destruye GameObject| C_Enemy
+    C_PuzzleMgr -->|Consulta| M_PuzzleState
+    M_PuzzleState -->|Render| V_Ghosts
 ```
+
+---
+
+## 3. Diagrama de Secuencia: Sistema de Combate
+
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Player as Jugador (Input)
+    actor Player as Jugador
     participant PScript as Player.cs
     participant Anim as Animator
     participant Hitbox as MeleeHitbox.cs
     participant Health as Health.cs (Enemigo)
 
-    Player->>PScript: Presiona botón "Attack"
+    Player->>PScript: Presiona "Attack"
     PScript->>Anim: Trigger("Attack")
-    Note over Anim: Reproduce animación de ataque
-    Anim->>PScript: Animation Event: AE_StartAttack()
+    Anim->>PScript: Evento: AE_StartAttack()
     PScript->>Hitbox: EnableHitbox()
-    Note over Hitbox: Activa Collider en trigger
     Hitbox->>Health: OnTriggerEnter() -> TakeDamage(damage)
-    Health->>Health: Resta currentHealth - damage
-    alt Salud <= 0
-        Health->>Health: Die() (Destruye GameObject)
+    
+    alt Si currentHealth <= 0
+        Health->>Health: Die() (Destruir GameObject)
+    else Si currentHealth > 0
+        Health->>Health: Restar daño a vida
     end
-    Anim->>PScript: Animation Event: AE_EndAttack()
+
+    Anim->>PScript: Evento: AE_EndAttack()
     PScript->>Hitbox: DisableHitbox()
 ```
+
+---
+
+## 4. Máquina de Estados Finitos (FSM): IA del Enemigo
+
 ```mermaid
 stateDiagram-v2
     [*] --> Patrulla : Start / Awake
