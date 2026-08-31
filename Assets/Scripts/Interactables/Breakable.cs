@@ -1,21 +1,6 @@
-// Breakable.cs
-// Objeto rompible opt-in: solo se destruye quien tenga este componente, asi las
-// piezas del puzzle y el resto del entorno quedan a salvo. Al recibir un
-// impacto con velocidad relativa >= _breakSpeed se parte en una rejilla de
-// fragmentos fisicos (Fragment) que desaparecen solos. Reglas de impacto:
-// - Cuerpo dinamico (suelto): usa la velocidad relativa del choque; dos
-//   objetos lanzados uno contra otro se rompen ambos por separado.
-// - Cuerpo kinematico (agarrado por la mano): usa la velocidad estimada de la
-//   mano (HandGrabManager.HeldVelocity), lo que permite estampar el objeto
-//   contra un muro mientras se sostiene.
-// - El piso nunca rompe salvo _breakOnFloor (evita roturas por sueltos
-//   accidentales del tracking).
-// Hooks de futuro: campo _containedPickup para instanciar contenido al romperse
-// (vida, monedas...) y evento OnBroken para logica externa (enemigos, misiones).
-// Para modelos importados con pedazos hechos a mano, usar _fragmentPrefabsOverride.
-
 using System;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace NuiGrab
@@ -29,6 +14,10 @@ namespace NuiGrab
     [SerializeField, Min(0.5f)] private float _fragmentLifetime = 4f;
     [SerializeField] private GameObject _containedPickup;
     [SerializeField] private GameObject[] _fragmentPrefabsOverride;
+
+        [Header("Sonidos")]
+        public AudioClip clip;
+
 
     /// <summary>Se dispara justo antes de destruir el objeto.</summary>
     public event Action<Breakable> OnBroken;
@@ -53,6 +42,11 @@ namespace NuiGrab
         return;
       }
 
+      if (IsPlayerCollision(collision))
+      {
+        return;
+      }
+
       var speed = ImpactSpeed(collision, out var floorHit);
 
       if (floorHit && !_breakOnFloor)
@@ -64,6 +58,23 @@ namespace NuiGrab
       {
         Break(collision);
       }
+    }
+
+    /// <summary>
+    /// True si algun contacto de la colision pertenece al cuerpo del jugador.
+    /// </summary>
+    private bool IsPlayerCollision(Collision collision)
+    {
+      for (int i = 0; i < collision.contactCount; i++)
+      {
+        var other = collision.GetContact(i).otherCollider;
+        if (other != null && other.GetComponentInParent<global::Player>() != null)
+        {
+          return true;
+        }
+      }
+
+      return false;
     }
 
     /// <summary>Rompe el objeto explicitamente (enemigos, armas, trampas...).</summary>
@@ -109,7 +120,10 @@ namespace NuiGrab
       {
         Instantiate(_containedPickup, transform.position + Vector3.up * 0.25f, Quaternion.identity);
       }
-
+      if (AudioManager.Instance != null)
+      {
+        AudioManager.Instance.playClip(clip);
+      }
       OnBroken?.Invoke(this);
       Destroy(gameObject);
     }

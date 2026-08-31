@@ -43,6 +43,19 @@ public class Player : MonoBehaviour
     private bool _hasEnteredAttackState;
     private bool _blockHeld;
 
+    [SerializeField] private MeleeHitbox playerSwordHitbox;
+
+    // Agrega estos dos métodos en tu Player.cs (Serán llamados por los Animation Events)
+    public void AE_StartAttack()
+    {
+        if (playerSwordHitbox != null) playerSwordHitbox.EnableHitbox();
+    }
+
+    public void AE_EndAttack()
+    {
+        if (playerSwordHitbox != null) playerSwordHitbox.DisableHitbox();
+    }
+
     /// <summary>
     /// Cuando es false (mano activa), PlayerLookAt controla el giro del cuerpo;
     /// este script solo mueve y no rota.

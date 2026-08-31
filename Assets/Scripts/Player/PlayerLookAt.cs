@@ -110,15 +110,22 @@ public class PlayerLookAt : MonoBehaviour
             var desired = _cursorTarget + Vector3.up * (vp.y - 0.5f) * _lookHeightRange;
             var k = 1f - Mathf.Exp(-_lookSmoothing * Time.deltaTime);
             _lookTarget = Vector3.Lerp(_lookTarget, desired, k);
-
-            if (_animator != null)
-            {
-                _animator.SetLookAtPosition(_lookTarget);
-            }
         }
 
-        ApplyLookWeight();
         Facing = transform.forward;
+    }
+
+    // El Animator evalua el IK humanoide aqui. Las llamadas SetLookAt* solo son
+    // validas dentro de este callback, no en LateUpdate/Update.
+    private void OnAnimatorIK(int layerIndex)
+    {
+        if (_animator == null)
+        {
+            return;
+        }
+
+        _animator.SetLookAtPosition(_lookTarget);
+        _animator.SetLookAtWeight(_lookWeight, 0f, _headWeight * _lookWeight, _eyeWeight * _lookWeight, _clamp);
     }
 
     private Vector3 ComputeCursor()
@@ -133,13 +140,5 @@ public class PlayerLookAt : MonoBehaviour
         }
 
         return transform.position;
-    }
-
-    private void ApplyLookWeight()
-    {
-        if (_animator != null)
-        {
-            _animator.SetLookAtWeight(_lookWeight, 0f, _headWeight * _lookWeight, _eyeWeight * _lookWeight, _clamp);
-        }
     }
 }
