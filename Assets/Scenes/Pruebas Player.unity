@@ -5529,6 +5529,20 @@ MonoBehaviour:
   _containedPickup: {fileID: 0}
   _fragmentPrefabsOverride: []
   clip: {fileID: 8300000, guid: 9159d71fb14cf0c4da16e21a98221097, type: 3}
+--- !u!134 &794856376
+PhysicsMaterial:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: ' (Instance) (Instance) (Instance) (Instance) (Instance) (Instance) (Instance)
+    (Instance)'
+  serializedVersion: 2
+  m_DynamicFriction: 0.6
+  m_StaticFriction: 0.6
+  m_Bounciness: 0
+  m_FrictionCombine: 0
+  m_BounceCombine: 0
 --- !u!1 &798376522
 GameObject:
   m_ObjectHideFlags: 0
@@ -5993,19 +6007,6 @@ PhysicsMaterial:
   m_Bounciness: 0
   m_FrictionCombine: 0
   m_BounceCombine: 0
---- !u!134 &1253870459
-PhysicsMaterial:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: ' (Instance) (Instance) (Instance) (Instance) (Instance) (Instance) (Instance)'
-  serializedVersion: 2
-  m_DynamicFriction: 0.6
-  m_StaticFriction: 0.6
-  m_Bounciness: 0
-  m_FrictionCombine: 0
-  m_BounceCombine: 0
 --- !u!134 &1334251085
 PhysicsMaterial:
   m_ObjectHideFlags: 0
@@ -6328,6 +6329,7 @@ MonoBehaviour:
   _distance: 12
   _tiltAngle: 40
   _smoothSpeed: 6
+  _lockOnFraming: 0.3
 --- !u!1 &1550120676 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7442228757313654714, guid: 33a1f63f3c3b35d4686fb65fa2c48164, type: 3}
@@ -6346,6 +6348,43 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Health
   maxHealth: 100
+--- !u!114 &1550120689
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1550120676}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6954d68a560af0e4780df7a91f344ee4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerLockOn
+  _player: {fileID: 1550120692}
+  _playerInput: {fileID: 1550120693}
+  _lockOnDistance: 8.39
+--- !u!114 &1550120692 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6314286799655289616, guid: 33a1f63f3c3b35d4686fb65fa2c48164, type: 3}
+  m_PrefabInstance: {fileID: 7330497978746288644}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1550120676}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16cc12811583e3c45b6053ed1a06f71c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
+--- !u!114 &1550120693 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4156924932897547620, guid: 33a1f63f3c3b35d4686fb65fa2c48164, type: 3}
+  m_PrefabInstance: {fileID: 7330497978746288644}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1550120676}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62899f850307741f2a39c98a8b639597, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.PlayerInput
 --- !u!1 &1587582705
 GameObject:
   m_ObjectHideFlags: 0
@@ -7531,7 +7570,7 @@ PrefabInstance:
     - target: {fileID: 4178442952000887658, guid: 33a1f63f3c3b35d4686fb65fa2c48164, type: 3}
       propertyPath: m_Material
       value: 
-      objectReference: {fileID: 1253870459}
+      objectReference: {fileID: 794856376}
     - target: {fileID: 4369747562035625269, guid: 33a1f63f3c3b35d4686fb65fa2c48164, type: 3}
       propertyPath: m_Layer
       value: 3
@@ -7748,6 +7787,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 7442228757313654714, guid: 33a1f63f3c3b35d4686fb65fa2c48164, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1550120688}
+    - targetCorrespondingSourceObject: {fileID: 7442228757313654714, guid: 33a1f63f3c3b35d4686fb65fa2c48164, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1550120689}
     - targetCorrespondingSourceObject: {fileID: 7793198251416173301, guid: 33a1f63f3c3b35d4686fb65fa2c48164, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1164020724}
