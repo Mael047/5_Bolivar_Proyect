@@ -366,6 +366,7 @@ GameObject:
   - component: {fileID: 2865373047148020928}
   - component: {fileID: 6015234020271637049}
   - component: {fileID: 1302896877427645896}
+  - component: {fileID: 3279854708702544090}
   m_Layer: 3
   m_Name: Player
   m_TagString: Player
@@ -628,7 +629,12 @@ MonoBehaviour:
   _debugStickMagnitude: 0
   _debugMag01: 0
   _debugTargetSpeed: 0
+  _dodgeForce: 15
+  _dodgeDuration: 0.5
+  _dodgeCooldown: 1
+  _attackLungeSpeed: 3
   playerSwordHitbox: {fileID: 5054741209596874415}
+  playerCollider: {fileID: 0}
 --- !u!114 &1325221803808593841
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -694,6 +700,18 @@ MonoBehaviour:
   _player: {fileID: 4395897023668582851}
   _playerInput: {fileID: 3583433505056451716}
   _lockOnDistance: 8.39
+--- !u!114 &3279854708702544090
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8103520398943621603}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 641f7d35d67bff244a301ab8f3ef06ae, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GrassTracker
 --- !u!1001 &3262966085260302181
 PrefabInstance:
   m_ObjectHideFlags: 0

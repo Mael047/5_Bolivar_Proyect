@@ -17,6 +17,9 @@ public class Enemy : MonoBehaviour
     public float viewAngle = 90f;
     public LayerMask obstacleMask;
 
+    [Header("Estadísticas")]
+    public int Damage = 10;
+
     private Rigidbody rb;
     public bool attack;
 
@@ -124,7 +127,22 @@ public class Enemy : MonoBehaviour
         attack = false;
     }
 
-   
+    private void OnTriggerEnter(Collider other)
+    {
+        IDamageable target = other.GetComponent<IDamageable>();
+
+        if (target != null)
+        {
+            Player player = other.GetComponent<Player>();
+            if (player != null && player.IsInvincible)
+            {
+                return;
+            }
+
+            target.TakeDamage(Damage);
+        }
+    }
+
     private void OnDrawGizmosSelected()
     {
         // Radio de visión

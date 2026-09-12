@@ -35,6 +35,19 @@ public class Player : MonoBehaviour
     [SerializeField] private float _debugMag01;
     [SerializeField] private float _debugTargetSpeed;
 
+    [Header("Dodge")]
+    [SerializeField] private float _dodgeForce = 15f; // Fuerza del empuje
+    [SerializeField] private float _dodgeDuration = 0.5f; // Cuánto dura el empuje
+    [SerializeField] private float _dodgeCooldown = 1f; // Tiempo de espera entre esquivas
+
+    [Tooltip("Velocidad de empuje automático hacia adelante durante el ataque.")]
+    [SerializeField] private float _attackLungeSpeed = 3f;
+
+    private bool _isDodging;
+    private float _dodgeTimer;
+    private float _dodgeCooldownTimer;
+    private Vector3 _dodgeDirection;
+
     private Rigidbody rb;
     private Vector2 moveInput;
     private PlayerLookAt _lookAt;
@@ -44,8 +57,8 @@ public class Player : MonoBehaviour
     private bool _blockHeld;
 
     [SerializeField] private MeleeHitbox playerSwordHitbox;
+    [SerializeField] private Collider playerCollider;
 
-    // Agrega estos dos métodos en tu Player.cs (Serán llamados por los Animation Events)
     public void AE_StartAttack()
     {
         if (playerSwordHitbox != null) playerSwordHitbox.EnableHitbox();
@@ -54,6 +67,20 @@ public class Player : MonoBehaviour
     public void AE_EndAttack()
     {
         if (playerSwordHitbox != null) playerSwordHitbox.DisableHitbox();
+    }
+
+    public bool IsInvincible { get; private set; }
+
+    // Llama a este evento de animación al inicio del Dodge
+    public void AE_StartInvincibility()
+    {
+        IsInvincible = true;
+    }
+
+    // Llama a este evento de animación al final del Dodge
+    public void AE_EndInvincibility()
+    {
+        IsInvincible = false;
     }
 
     /// <summary>
@@ -103,6 +130,12 @@ public class Player : MonoBehaviour
             blockAction.started += OnBlockStarted;
             blockAction.canceled += OnBlockCanceled;
         }
+
+        var dodgeAction = _playerInput?.actions?.FindAction("Dodge", true);
+        if (dodgeAction != null)
+        {
+            dodgeAction.started += OnDodgePerformed;
+        }
     }
 
     private void OnDestroy()
@@ -118,6 +151,12 @@ public class Player : MonoBehaviour
         {
             blockAction.started -= OnBlockStarted;
             blockAction.canceled -= OnBlockCanceled;
+        }
+
+        var dodgeAction = _playerInput?.actions?.FindAction("Dodge", true);
+        if (dodgeAction != null)
+        {
+            dodgeAction.started -= OnDodgePerformed;
         }
     }
 
@@ -166,31 +205,77 @@ public class Player : MonoBehaviour
         _animator.SetTrigger("Attack");
     }
 
+    private void OnDodgePerformed(InputAction.CallbackContext context)
+    {
+        // No esquivar si está ocupado o si el cooldown sigue activo
+        if (IsBusy || _dodgeCooldownTimer > 0f) return;
+
+        if (_lookAt != null) _lookAt.SetBusy(true);
+        if (_animator != null) _animator.SetTrigger("Dodge");
+
+        StartDodge();
+    }
+
+    private void StartDodge()
+    {
+        _isDodging = true;
+        _dodgeTimer = _dodgeDuration;
+        _dodgeCooldownTimer = _dodgeCooldown; // Reinicia el temporizador aquí
+
+        if (moveInput.sqrMagnitude > 0.1f)
+        {
+            Transform camTransform = Camera.main.transform;
+            Vector3 camForward = camTransform.forward;
+            Vector3 camRight = camTransform.right;
+            camForward.y = 0f;
+            camRight.y = 0f;
+            camForward.Normalize();
+            camRight.Normalize();
+            _dodgeDirection = (camRight * moveInput.x + camForward * moveInput.y).normalized;
+
+            transform.rotation = Quaternion.LookRotation(_dodgeDirection, Vector3.up);
+        }
+        else
+        {
+            _dodgeDirection = transform.forward;
+        }
+    }
+
     private void Update()
     {
         var attacking = IsInAttackingState();
-        _isAttacking = attacking;
 
-        // La capa "BlockLayer" (indice 1) solo se ve mientras el jugador se cubre.
-        // Al atacar o estar ocupado, IsBlocking es false y la capa se apaga, dejando
-        // que el locomotion (piernas) siga sin el escudo en pantalla.
+        // Flujo constante del cooldown
+        if (_dodgeCooldownTimer > 0f)
+        {
+            _dodgeCooldownTimer -= Time.deltaTime;
+        }
+
+        // Manejo del tiempo del dodge
+        if (_isDodging)
+        {
+            _dodgeTimer -= Time.deltaTime;
+            if (_dodgeTimer <= 0f)
+            {
+                _isDodging = false;
+            }
+        }
+
+        _isAttacking = attacking;
+        IsBusy = attacking || _isDodging;
+
         if (_animator != null)
         {
             _animator.SetLayerWeight(1, IsBlocking ? 1f : 0f);
         }
 
-        if (!attacking)
+        if (!IsBusy)
         {
             if (_hasEnteredAttackState)
             {
                 _hasEnteredAttackState = false;
-
-                if (_lookAt != null)
-                {
-                    _lookAt.SetBusy(false);
-                }
+                if (_lookAt != null) _lookAt.SetBusy(false);
             }
-
             return;
         }
 
@@ -219,7 +304,24 @@ public class Player : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (IsBusy)
+        // 1. LÓGICA DE EMPUJE DEL DODGE
+        if (_isDodging)
+        {
+            rb.linearVelocity = new Vector3(_dodgeDirection.x * _dodgeForce, rb.linearVelocity.y, _dodgeDirection.z * _dodgeForce);
+            return;
+        }
+
+        // 2. LÓGICA DE IMPULSO DE ATAQUE
+        if (_isAttacking)
+        {
+            // Empuja suavemente al jugador en la dirección que está mirando
+            Vector3 lunge = transform.forward * _attackLungeSpeed;
+            rb.linearVelocity = new Vector3(lunge.x, rb.linearVelocity.y, lunge.z);
+            return;
+        }
+
+        // 3. BLOQUEO PARA OTRAS ACCIONES (Si añades usos de objetos, curaciones, etc.)
+        if (IsBusy && !_isAttacking && !_isDodging)
         {
             rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
             return;
@@ -284,4 +386,14 @@ public class Player : MonoBehaviour
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotSpeed * Time.deltaTime);
         }
     }
+
+    private bool IsInDodgeState()
+    {
+        if (_animator == null) return false;
+        var current = _animator.GetCurrentAnimatorStateInfo(0);
+        var next = _animator.GetNextAnimatorStateInfo(0);
+        // Cambia "Dodge" si tu estado en el Animator se llama diferente
+        return current.IsName("Dodge") || next.IsName("Dodge");
+    }
+
 }
