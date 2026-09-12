@@ -235,7 +235,17 @@ public class Player : MonoBehaviour
 
         if (magnitude > _deadzone)
         {
-            moveDir = new Vector3(input.x, 0f, input.y) / magnitude;
+            Transform camTransform = Camera.main.transform;
+
+            Vector3 camForward = camTransform.forward;
+            Vector3 camRight = camTransform.right;
+
+            camForward.y = 0f;
+            camRight.y = 0f;
+            camForward.Normalize();
+            camRight.Normalize();
+
+            moveDir = (camRight * input.x + camForward * input.y) / magnitude;
             targetSpeed = Mathf.Lerp(_walkSpeed, _runSpeed, _speedCurve.Evaluate(mag01));
 
             if (IsInAttackingState())
