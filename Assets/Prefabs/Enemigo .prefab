@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 6318660416690358382}
   - component: {fileID: 6626310495237058281}
   - component: {fileID: 8955855358409114848}
+  - component: {fileID: 3253404524070036961}
   m_Layer: 10
   m_Name: 'Enemigo '
   m_TagString: Untagged
@@ -184,6 +185,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Health
   maxHealth: 50
+--- !u!114 &3253404524070036961
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5256195799003241086}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c4fff48eadf4c408e142b54c0b18672, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HitReaction
 --- !u!1 &7014035066567580190
 GameObject:
   m_ObjectHideFlags: 0

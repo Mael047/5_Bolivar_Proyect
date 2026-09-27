@@ -40,8 +40,92 @@ public class Player : MonoBehaviour
     [SerializeField] private float _dodgeDuration = 0.5f; // Cuánto dura el empuje
     [SerializeField] private float _dodgeCooldown = 1f; // Tiempo de espera entre esquivas
 
-    [Tooltip("Velocidad de empuje automático hacia adelante durante el ataque.")]
+    [Tooltip("Velocidad de empuje automático hacia adelante durante el ataque. " +
+             "Base para los ataques en modo 'Velocidad Constante'.")]
     [SerializeField] private float _attackLungeSpeed = 3f;
+
+    public enum LungeMode
+    {
+        [Tooltip("Avanza a velocidad fija durante todo el ataque (Attack Lunge Speed x multiplicador).")]
+        VelocidadConstante,
+        [Tooltip("Recorre una distancia exacta siguiendo la curva; fuera de ella se queda plantado.")]
+        Distancia
+    }
+
+    [System.Serializable]
+    public class AttackProfile
+    {
+        [Tooltip("Nombre exacto del estado en el Animator (capa 0).")]
+        public string stateName = "Attack1";
+
+        [Tooltip("Daño que hace la espada durante este ataque.")]
+        [Min(0)] public int damage = 20;
+
+        [Tooltip("Multiplica el temblor, hit-stop, empuje y chispas del enemigo al conectar este golpe.")]
+        [Min(0f)] public float impactMultiplier = 1f;
+
+        [Tooltip("Lo que siente el jugador al conectar: congelado extra, camara lenta, " +
+                 "kick y zoom de camara, vibracion del mando y sonido.")]
+        public ImpactSettings impact = new ImpactSettings();
+
+        [Header("Avance")]
+        public LungeMode lungeMode = LungeMode.VelocidadConstante;
+
+        [Tooltip("Solo en 'Velocidad Constante': multiplica Attack Lunge Speed.")]
+        [Min(0f)] public float lungeSpeedMultiplier = 1f;
+
+        [Tooltip("Solo en 'Distancia': metros que avanza el personaje en este ataque.")]
+        [Min(0f)] public float lungeDistance = 2f;
+
+        [Tooltip("Solo en 'Distancia': X = tiempo normalizado del clip (0..1), " +
+                 "Y = fraccion de la distancia ya recorrida (0..1). Donde la curva " +
+                 "esta plana el personaje no se mueve; donde sube rapido, embiste.")]
+        public AnimationCurve lungeCurve = AnimationCurve.Linear(0f, 0f, 1f, 1f);
+
+        [System.NonSerialized] public int hash;
+    }
+
+    [Tooltip("Un perfil por golpe del combo. El estado del Animator debe llamarse igual que 'State Name'.")]
+    [SerializeField] private AttackProfile[] _attackProfiles =
+    {
+        new AttackProfile { stateName = "Attack1", damage = 20 },
+        new AttackProfile { stateName = "Attack2", damage = 20 },
+        new AttackProfile
+        {
+            // Estocada final: mas daño, golpe mas contundente y un paso largo
+            // hacia delante concentrado justo antes y durante el impacto
+            // (eventos del clip: hitbox activa entre 0.25 y 0.43).
+            stateName = "Attack3",
+            damage = 40,
+            impactMultiplier = 1.8f,
+            impact = new ImpactSettings
+            {
+                // El golpe mas duro: congelado largo, camara lenta que se
+                // recupera, la camara "recibe" la estocada y se acerca, y el
+                // mando vibra grave.
+                extraHitStop = 0.05f,
+                slowMotionDuration = 0.3f,
+                slowMotionScale = 0.3f,
+                cameraKick = 0.3f,
+                cameraZoomPunch = 0.07f,
+                rumbleLow = 0.85f,
+                rumbleHigh = 0.6f,
+                rumbleDuration = 0.22f
+            },
+            lungeMode = LungeMode.Distancia,
+            lungeDistance = 2.2f,
+            lungeCurve = new AnimationCurve(
+                new Keyframe(0f, 0f, 0f, 0f),
+                new Keyframe(0.12f, 0f, 0f, 0f),
+                new Keyframe(0.3f, 0.85f, 3f, 3f),
+                new Keyframe(0.45f, 1f, 0f, 0f),
+                new Keyframe(1f, 1f, 0f, 0f))
+        }
+    };
+
+    private AttackProfile _currentAttack;
+    private int _lungeStateHash;
+    private float _lungePrevTime;
 
     private bool _isDodging;
     private float _dodgeTimer;
@@ -61,7 +145,23 @@ public class Player : MonoBehaviour
 
     public void AE_StartAttack()
     {
-        if (playerSwordHitbox != null) playerSwordHitbox.EnableHitbox();
+        if (playerSwordHitbox == null) return;
+
+        // El golpe que activa la hitbox define su daño y contundencia.
+        var attack = ResolveCurrentAttack(out _);
+        if (attack != null)
+        {
+            playerSwordHitbox.damage = attack.damage;
+            playerSwordHitbox.ImpactMultiplier = attack.impactMultiplier;
+            playerSwordHitbox.Impact = attack.impact;
+        }
+        else
+        {
+            playerSwordHitbox.ImpactMultiplier = 1f;
+            playerSwordHitbox.Impact = null;
+        }
+
+        playerSwordHitbox.EnableHitbox();
     }
 
     public void AE_EndAttack()
@@ -111,6 +211,14 @@ public class Player : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
         _lookAt = GetComponent<PlayerLookAt>();
+
+        if (_attackProfiles != null)
+        {
+            foreach (var profile in _attackProfiles)
+            {
+                if (profile != null) profile.hash = Animator.StringToHash(profile.stateName);
+            }
+        }
         _playerInput = GetComponent<PlayerInput>();
 
         if (_animator == null)
@@ -297,9 +405,48 @@ public class Player : MonoBehaviour
         return IsAttackName(current) || IsAttackName(next);
     }
 
-    private static bool IsAttackName(AnimatorStateInfo info)
+    private bool IsAttackName(AnimatorStateInfo info)
     {
-        return info.IsName("Attack1") || info.IsName("Attack2");
+        return FindProfile(info) != null;
+    }
+
+    private AttackProfile FindProfile(AnimatorStateInfo info)
+    {
+        if (_attackProfiles == null) return null;
+
+        foreach (var profile in _attackProfiles)
+        {
+            if (profile != null && profile.hash == info.shortNameHash)
+            {
+                return profile;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Ataque en curso. Durante una transicion de combo (Attack2 -> Attack3)
+    /// manda el estado de destino: el golpe nuevo ya ha empezado.
+    /// </summary>
+    private AttackProfile ResolveCurrentAttack(out AnimatorStateInfo info)
+    {
+        info = default;
+        if (_animator == null) return null;
+
+        if (_animator.IsInTransition(0))
+        {
+            var next = _animator.GetNextAnimatorStateInfo(0);
+            var nextProfile = FindProfile(next);
+            if (nextProfile != null)
+            {
+                info = next;
+                return nextProfile;
+            }
+        }
+
+        info = _animator.GetCurrentAnimatorStateInfo(0);
+        return FindProfile(info);
     }
 
     private void FixedUpdate()
@@ -314,11 +461,12 @@ public class Player : MonoBehaviour
         // 2. LÓGICA DE IMPULSO DE ATAQUE
         if (_isAttacking)
         {
-            // Empuja suavemente al jugador en la dirección que está mirando
-            Vector3 lunge = transform.forward * _attackLungeSpeed;
+            var lunge = transform.forward * AttackLungeSpeed();
             rb.linearVelocity = new Vector3(lunge.x, rb.linearVelocity.y, lunge.z);
             return;
         }
+
+        _lungeStateHash = 0;
 
         // 3. BLOQUEO PARA OTRAS ACCIONES (Si añades usos de objetos, curaciones, etc.)
         if (IsBusy && !_isAttacking && !_isDodging)
@@ -385,6 +533,45 @@ public class Player : MonoBehaviour
             var rotSpeed = _rotationSpeed * (0.3f + 0.7f * mag01);
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotSpeed * Time.deltaTime);
         }
+    }
+
+    /// <summary>
+    /// Velocidad de avance de este paso fisico segun el perfil del ataque.
+    /// En modo Distancia se deriva de la curva: lo que avanza la curva entre el
+    /// paso anterior y este, convertido en velocidad. Asi la distancia total no
+    /// depende de la duracion del clip ni de la velocidad del estado.
+    /// </summary>
+    private float AttackLungeSpeed()
+    {
+        _currentAttack = ResolveCurrentAttack(out var info);
+
+        if (_currentAttack == null)
+        {
+            _lungeStateHash = 0;
+            return _attackLungeSpeed;
+        }
+
+        if (_currentAttack.lungeMode == LungeMode.VelocidadConstante)
+        {
+            _lungeStateHash = 0;
+            return _attackLungeSpeed * _currentAttack.lungeSpeedMultiplier;
+        }
+
+        var t = Mathf.Clamp01(info.normalizedTime);
+
+        // Estado nuevo (o repetido): arranca la curva desde su inicio.
+        if (_lungeStateHash != info.shortNameHash || t < _lungePrevTime)
+        {
+            _lungeStateHash = info.shortNameHash;
+            _lungePrevTime = 0f;
+        }
+
+        var curve = _currentAttack.lungeCurve;
+        var delta = curve.Evaluate(t) - curve.Evaluate(_lungePrevTime);
+        _lungePrevTime = t;
+
+        // Nunca retrocede aunque la curva baje.
+        return Mathf.Max(0f, delta) * _currentAttack.lungeDistance / Time.fixedDeltaTime;
     }
 
     private bool IsInDodgeState()

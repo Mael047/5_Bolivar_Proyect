@@ -347,6 +347,7 @@ MonoBehaviour:
   targetLayer:
     serializedVersion: 2
     m_Bits: 1280
+  owner: {fileID: 0}
 --- !u!1 &8103520398943621603
 GameObject:
   m_ObjectHideFlags: 0
@@ -367,6 +368,7 @@ GameObject:
   - component: {fileID: 6015234020271637049}
   - component: {fileID: 1302896877427645896}
   - component: {fileID: 3279854708702544090}
+  - component: {fileID: 5923717946685049922}
   m_Layer: 3
   m_Name: Player
   m_TagString: Player
@@ -539,7 +541,7 @@ MonoBehaviour:
     m_ActionId: 45b89680-57c2-4380-b24a-d6d0dca11394
     m_ActionName: 'PlayerMovement/Move[/DualSenseGamepadHID/leftStick/up,/DualSenseGamepadHID/dpad/down,/DualSenseGamepadHID/dpad/left,/DualSenseGamepadHID/dpad/right]'
   m_NeverAutoSwitchControlSchemes: 0
-  m_DefaultControlScheme: 
+  m_DefaultControlScheme: Keyboard
   m_DefaultActionMap: PlayerMovement
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
@@ -623,18 +625,169 @@ MonoBehaviour:
   _friction: 8
   _rotationSpeed: 12
   _backwardSpeedFactor: 0.6
-  _attackSpeedFactor: 0.3
+  _attackSpeedFactor: 0.4
   _blockSpeedFactor: 0.5
-  _animator: {fileID: 0}
+  _animator: {fileID: 8944984437823040244}
   _debugStickMagnitude: 0
   _debugMag01: 0
   _debugTargetSpeed: 0
-  _dodgeForce: 15
+  _dodgeForce: 10
   _dodgeDuration: 0.5
   _dodgeCooldown: 1
-  _attackLungeSpeed: 3
+  _attackLungeSpeed: 1.3
+  _attackProfiles:
+  - stateName: Attack1
+    damage: 20
+    impactMultiplier: 1
+    impact:
+      extraHitStop: 0
+      slowMotionDuration: 0
+      slowMotionScale: 0.35
+      cameraKick: 0.05
+      cameraZoomPunch: 0
+      rumbleLow: 0.15
+      rumbleHigh: 0.25
+      rumbleDuration: 0.08
+      impactClip: {fileID: 0}
+      impactVolume: 1
+    lungeMode: 0
+    lungeSpeedMultiplier: 1
+    lungeDistance: 2
+    lungeCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 1
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+  - stateName: Attack2
+    damage: 20
+    impactMultiplier: 1
+    impact:
+      extraHitStop: 0
+      slowMotionDuration: 0
+      slowMotionScale: 0.35
+      cameraKick: 0.05
+      cameraZoomPunch: 0
+      rumbleLow: 0.15
+      rumbleHigh: 0.25
+      rumbleDuration: 0.08
+      impactClip: {fileID: 0}
+      impactVolume: 1
+    lungeMode: 0
+    lungeSpeedMultiplier: 1
+    lungeDistance: 2
+    lungeCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 1
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+  - stateName: Attack3
+    damage: 40
+    impactMultiplier: 1.8
+    impact:
+      extraHitStop: 0.05
+      slowMotionDuration: 0.3
+      slowMotionScale: 0.3
+      cameraKick: 0.3
+      cameraZoomPunch: 0.07
+      rumbleLow: 0.85
+      rumbleHigh: 0.6
+      rumbleDuration: 0.22
+      impactClip: {fileID: 0}
+      impactVolume: 1
+    lungeMode: 1
+    lungeSpeedMultiplier: 1
+    lungeDistance: 2.2
+    lungeCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 0.12
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 0.3
+        value: 0.85
+        inSlope: 3
+        outSlope: 3
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 0.45
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
   playerSwordHitbox: {fileID: 5054741209596874415}
-  playerCollider: {fileID: 0}
+  playerCollider: {fileID: 5567495423638756996}
 --- !u!114 &1325221803808593841
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -712,6 +865,92 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 641f7d35d67bff244a301ab8f3ef06ae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GrassTracker
+--- !u!114 &5923717946685049922
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8103520398943621603}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6693854933ef4f44941f4016e2349dc7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SwordAimOverride
+  _swordPivot: {fileID: 8024596682476631569}
+  _bladeBase: {fileID: 2319308054948701233}
+  _bladeTip: {fileID: 4136390725584363846}
+  _animator: {fileID: 0}
+  _characterRoot: {fileID: 0}
+  _profiles:
+  - stateName: Attack3
+    weightCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 0.1
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 0.22
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 0.5
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 0.72
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    pitch: 8
+    yaw: 0
+    roll: 0
+    pivotOnGrip: 0
+    positionOffset: {x: -0.31, y: -0.47, z: 0.19}
+  _blendSpeed: 10
+  _preview: 0
 --- !u!1001 &3262966085260302181
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1116,5 +1355,10 @@ Transform:
 --- !u!4 &8088230558561202908 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6734931530170869177, guid: be0df400e0a624f40ab26c14a61ca27c, type: 3}
+  m_PrefabInstance: {fileID: 3262966085260302181}
+  m_PrefabAsset: {fileID: 0}
+--- !u!95 &8944984437823040244 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 5866666021909216657, guid: be0df400e0a624f40ab26c14a61ca27c, type: 3}
   m_PrefabInstance: {fileID: 3262966085260302181}
   m_PrefabAsset: {fileID: 0}

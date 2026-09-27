@@ -119,11 +119,6 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!95 &703340532 stripped
-Animator:
-  m_CorrespondingSourceObject: {fileID: 8944984437823040244, guid: 33a1f63f3c3b35d4686fb65fa2c48164, type: 3}
-  m_PrefabInstance: {fileID: 1530056871501152111}
-  m_PrefabAsset: {fileID: 0}
 --- !u!134 &794856376
 PhysicsMaterial:
   m_ObjectHideFlags: 0
@@ -851,11 +846,6 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 8103520398943621603, guid: 33a1f63f3c3b35d4686fb65fa2c48164, type: 3}
   m_PrefabInstance: {fileID: 1530056871501152111}
   m_PrefabAsset: {fileID: 0}
---- !u!136 &212569190618674630 stripped
-CapsuleCollider:
-  m_CorrespondingSourceObject: {fileID: 5567495423638756996, guid: 33a1f63f3c3b35d4686fb65fa2c48164, type: 3}
-  m_PrefabInstance: {fileID: 1530056871501152111}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &619425533338377536
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1075,38 +1065,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 3583433505056451716, guid: 33a1f63f3c3b35d4686fb65fa2c48164, type: 3}
-      propertyPath: m_DefaultControlScheme
-      value: Keyboard
-      objectReference: {fileID: 0}
-    - target: {fileID: 3583433505056451716, guid: 33a1f63f3c3b35d4686fb65fa2c48164, type: 3}
-      propertyPath: m_NeverAutoSwitchControlSchemes
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4395897023668582851, guid: 33a1f63f3c3b35d4686fb65fa2c48164, type: 3}
-      propertyPath: _animator
-      value: 
-      objectReference: {fileID: 703340532}
-    - target: {fileID: 4395897023668582851, guid: 33a1f63f3c3b35d4686fb65fa2c48164, type: 3}
-      propertyPath: _dodgeForce
-      value: 10
-      objectReference: {fileID: 0}
-    - target: {fileID: 4395897023668582851, guid: 33a1f63f3c3b35d4686fb65fa2c48164, type: 3}
-      propertyPath: _dodgeDuration
-      value: 0.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 4395897023668582851, guid: 33a1f63f3c3b35d4686fb65fa2c48164, type: 3}
-      propertyPath: playerCollider
-      value: 
-      objectReference: {fileID: 212569190618674630}
-    - target: {fileID: 4395897023668582851, guid: 33a1f63f3c3b35d4686fb65fa2c48164, type: 3}
-      propertyPath: _attackLungeSpeed
-      value: 1.3
-      objectReference: {fileID: 0}
-    - target: {fileID: 4395897023668582851, guid: 33a1f63f3c3b35d4686fb65fa2c48164, type: 3}
-      propertyPath: _attackSpeedFactor
-      value: 0.4
-      objectReference: {fileID: 0}
     - target: {fileID: 4922666007530297273, guid: 33a1f63f3c3b35d4686fb65fa2c48164, type: 3}
       propertyPath: m_Material
       value: 
@@ -1118,10 +1076,6 @@ PrefabInstance:
     - target: {fileID: 8103520398943621603, guid: 33a1f63f3c3b35d4686fb65fa2c48164, type: 3}
       propertyPath: m_Name
       value: Player
-      objectReference: {fileID: 0}
-    - target: {fileID: 8944984437823040244, guid: 33a1f63f3c3b35d4686fb65fa2c48164, type: 3}
-      propertyPath: m_ApplyRootMotion
-      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

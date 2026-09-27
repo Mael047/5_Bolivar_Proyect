@@ -21,6 +21,7 @@ public class Enemy : MonoBehaviour
     public int Damage = 10;
 
     private Rigidbody rb;
+    private HitReaction hitReaction;
     public bool attack;
 
 
@@ -32,10 +33,18 @@ public class Enemy : MonoBehaviour
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
+        hitReaction = GetComponent<HitReaction>();
     }
 
     void Update()
     {
+        // Mientras esta aturdido por un golpe no patrulla ni persigue: si no,
+        // el Translate de la IA anularia el empuje hacia atras.
+        if (hitReaction != null && hitReaction.IsStunned)
+        {
+            return;
+        }
+
         Comportamiento();
     }
 

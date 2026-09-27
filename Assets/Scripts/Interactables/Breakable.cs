@@ -15,6 +15,12 @@ namespace NuiGrab
     [SerializeField] private GameObject _containedPickup;
     [SerializeField] private GameObject[] _fragmentPrefabsOverride;
 
+    [Header("Textura de los fragmentos")]
+    [Tooltip("0 = cada pedazo usa un color plano tomado del punto de la malla " +
+             "original mas cercano (ideal para atlas de paleta). 1 = UV completas " +
+             "de la superficie. Valores bajos evitan que se cuele otra zona del atlas.")]
+    [SerializeField, Range(0f, 1f)] private float _fragmentUvBlend = 0.3f;
+
         [Header("Sonidos")]
         public AudioClip clip;
 
@@ -206,16 +212,39 @@ namespace NuiGrab
       }
       else
       {
-        // Ruta procedural: divide los bounds del renderer en una rejilla
-        // NxNxN de cubos con el mismo material. Sirve para primitivas; los
-        // modelos detallados usaran la ruta de override.
+        // Ruta procedural: divide la malla original en una rejilla NxNxN de
+        // cubos. Las UV de cada cubo se muestrean de la malla original para que
+        // pinte la misma zona del atlas que la superficie de la que salio; un
+        // cubo primitivo de Unity trae UV 0..1 y con un atlas compartido acaba
+        // mostrando las texturas de otros modelos.
         var grid = Mathf.Max(2, _fragmentGrid);
-        var bounds = renderer.bounds;
-        var cellSize = new Vector3(
-            bounds.size.x / grid,
-            bounds.size.y / grid,
-            bounds.size.z / grid);
+        var meshFilter = GetComponent<MeshFilter>();
+        var sourceMesh = meshFilter != null ? meshFilter.sharedMesh : null;
+        var sampler = new MeshUvSampler(sourceMesh);
+
+        if (!sampler.IsValid)
+        {
+          Debug.LogWarning(
+              $"[Breakable] '{name}': no se pudieron leer las UV de la malla " +
+              "original, los fragmentos usaran UV planas. Activa 'Read/Write " +
+              "Enabled' en los ajustes de importacion del modelo.",
+              this);
+        }
+
+        // Rejilla en espacio local de la malla: asi funciona tambien con el
+        // objeto rotado, a diferencia del AABB en mundo del renderer.
+        var localBounds = sourceMesh != null
+            ? sourceMesh.bounds
+            : new Bounds(transform.InverseTransformPoint(renderer.bounds.center), Vector3.one);
+
+        var cellSize = localBounds.size / grid;
+        var lossyScale = transform.lossyScale;
         var fill = 0.88f;
+        var worldSize = new Vector3(
+            Mathf.Abs(cellSize.x * lossyScale.x) * fill,
+            Mathf.Abs(cellSize.y * lossyScale.y) * fill,
+            Mathf.Abs(cellSize.z * lossyScale.z) * fill);
+
         var perFragmentMass = totalMass / (grid * grid * grid);
 
         for (int x = 0; x < grid; x++)
@@ -224,24 +253,34 @@ namespace NuiGrab
           {
             for (int z = 0; z < grid; z++)
             {
-              var offset = new Vector3(
+              var localCenter = localBounds.min + new Vector3(
                   (x + 0.5f) * cellSize.x,
                   (y + 0.5f) * cellSize.y,
                   (z + 0.5f) * cellSize.z);
 
-              var fragment = GameObject.CreatePrimitive(PrimitiveType.Cube);
-              fragment.name = name + "_frag";
-              fragment.transform.position = bounds.min + offset;
-              fragment.transform.rotation = transform.rotation;
-              fragment.transform.localScale = Vector3.Scale(cellSize, Vector3.one * fill);
+              var fragment = new GameObject(name + "_frag");
+              fragment.transform.SetPositionAndRotation(
+                  transform.TransformPoint(localCenter), transform.rotation);
 
-              var meshRenderer = fragment.GetComponent<MeshRenderer>();
-              if (meshRenderer != null)
-              {
-                meshRenderer.sharedMaterial = material;
-              }
+              var mesh = FragmentMeshFactory.CreateFragmentCube(
+                  worldSize, fragment.transform, transform, sampler, _fragmentUvBlend);
+
+              fragment.AddComponent<MeshFilter>().sharedMesh = mesh;
+
+              var meshRenderer = fragment.AddComponent<MeshRenderer>();
+              meshRenderer.sharedMaterial = material;
+              meshRenderer.shadowCastingMode = renderer.shadowCastingMode;
+
+              fragment.AddComponent<BoxCollider>().size = worldSize;
 
               CollectAndLaunch(fragment, perFragmentMass, impactPoint, impactVelocity, spawnedColliders);
+
+              // La malla se genera en runtime: el pedazo la libera al morir.
+              var fragmentComponent = fragment.GetComponent<Fragment>();
+              if (fragmentComponent != null)
+              {
+                fragmentComponent.SetOwnedMesh(mesh);
+              }
             }
           }
         }
