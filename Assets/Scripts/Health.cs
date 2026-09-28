@@ -5,6 +5,12 @@ public class Health : MonoBehaviour, IDamageable
     [SerializeField] private int maxHealth = 100;
     private int currentHealth;
 
+    [Tooltip("Segundos que tarda en destruirse tras morir. Mayor que 0 permite ver/jugar la animacion de muerte antes del Destroy.")]
+    [SerializeField] private float destroyDelay = 0f;
+
+    /// <summary>Se dispara justo antes de destruir el objeto (o de programar el destroy).</summary>
+    public event System.Action Died;
+
     public int CurrentHealth => currentHealth;
 
     private void Awake()
@@ -26,6 +32,23 @@ public class Health : MonoBehaviour, IDamageable
     private void Die()
     {
         Debug.Log($"{gameObject.name} ha sido derrotado.");
-        Destroy(gameObject);
+        Died?.Invoke();
+
+        if (destroyDelay > 0f)
+        {
+            Invoke(nameof(DestroyDelayed), destroyDelay);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
+
+    private void DestroyDelayed()
+    {
+        if (this != null)
+        {
+            Destroy(gameObject);
+        }
     }
 }

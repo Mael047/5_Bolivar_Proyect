@@ -24,6 +24,9 @@ public class Enemy : MonoBehaviour
     private HitReaction hitReaction;
     public bool attack;
 
+    /// <summary>True mientras la IA translada en este frame (para la animacion de caminar).</summary>
+    public bool IsMovingNow { get; private set; }
+
 
     void Start()
     {
@@ -38,6 +41,8 @@ public class Enemy : MonoBehaviour
 
     void Update()
     {
+        IsMovingNow = false;
+
         // Mientras esta aturdido por un golpe no patrulla ni persigue: si no,
         // el Translate de la IA anularia el empuje hacia atras.
         if (hitReaction != null && hitReaction.IsStunned)
@@ -67,6 +72,7 @@ public class Enemy : MonoBehaviour
                 transform.rotation = Quaternion.RotateTowards(transform.rotation, rotation, 3f);
 
                 transform.Translate(Vector3.forward * speedDetected * Time.deltaTime);
+                IsMovingNow = true;
             }
             else
             {
@@ -99,6 +105,7 @@ public class Enemy : MonoBehaviour
                 case 2:
                     transform.rotation = Quaternion.RotateTowards(transform.rotation, angulo, 0.5f);
                     transform.Translate(Vector3.forward * speed * Time.deltaTime);
+                    IsMovingNow = true;
                     break;
             }
         }
