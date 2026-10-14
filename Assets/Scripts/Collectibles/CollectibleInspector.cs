@@ -1,21 +1,3 @@
-// CollectibleInspector.cs
-// Vista de inspeccion estilo Resident Evil. Al abrirse:
-//   1. Congela el juego (opcional) y desactiva el input del jugador y el
-//      agarre por telequinesis.
-//   2. Si la interfaz tiene "Blurred Background", captura la pantalla y la
-//      difumina (reducciones bilineales, sin shaders extra).
-//   3. Instancia una copia solo-visual del modelo en un escenario aislado,
-//      lejos del nivel, con camara y luces propias, y la dibuja en la RawImage
-//      "Model Image" de la interfaz.
-//   4. Escribe titulo, subtitulo y descripcion en los textos de la interfaz.
-//
-// La interfaz es un prefab con CollectibleInspectorView que se diseña en el
-// editor (por defecto Assets/UI/Collectibles/CollectibleInspectorUI). Cada
-// coleccionable puede usar la suya (Collectible > Custom Inspector View).
-//
-// El modelo se gira con la mano (puño cerrado + mover, como la telequinesis),
-// el stick / WASD o arrastrando con el raton; gatillos o rueda para el zoom.
-// F / Esc / X / Circulo cierran. Usa tiempo no escalado (juego pausado).
 
 using System.Collections;
 using System.Collections.Generic;
@@ -102,6 +84,7 @@ namespace Collectibles
     private bool _disabledHandGrab;
     private HandTracker _handTracker;
     private bool _paused;
+    private bool _keepGameState;
     private bool _missingWarned;
 
     private readonly Dictionary<CollectibleInspectorView, CollectibleInspectorView> _instances =
@@ -185,7 +168,12 @@ namespace Collectibles
       }
     }
 
-    public void Open(Collectible target, PlayerInput playerInput)
+    /// <summary>
+    /// Abre la inspeccion. Con keepGameState (p. ej. desde el menu de pausa)
+    /// no toca la pausa, el input del jugador ni el agarre: quien la abre ya
+    /// los controla.
+    /// </summary>
+    public void Open(Collectible target, PlayerInput playerInput, bool keepGameState = false)
     {
       if (_state != State.Closed || target == null)
       {
@@ -204,7 +192,8 @@ namespace Collectibles
         return;
       }
 
-      StartCoroutine(OpenRoutine(target, view, playerInput));
+      _keepGameState = keepGameState;
+      StartCoroutine(OpenRoutine(target, view, keepGameState ? null : playerInput));
     }
 
     public void Close()
@@ -268,7 +257,7 @@ namespace Collectibles
         _playerInput.DeactivateInput();
       }
 
-      _handGrab = FindAnyObjectByType<HandGrabManager>();
+      _handGrab = _keepGameState ? null : FindAnyObjectByType<HandGrabManager>();
       _disabledHandGrab = _handGrab != null && _handGrab.enabled && !_handGrab.IsHolding;
 
       if (_disabledHandGrab)
@@ -284,7 +273,7 @@ namespace Collectibles
         CaptureBlurredBackground(view.blurredBackground);
       }
 
-      if (_pauseGame)
+      if (_pauseGame && !_keepGameState)
       {
         Time.timeScale = 0f;
         _paused = true;
@@ -388,6 +377,8 @@ namespace Collectibles
       {
         CollectibleInteractor.Instance.BlockFor(0.3f);
       }
+
+      _keepGameState = false;
 
       if (target != null)
       {

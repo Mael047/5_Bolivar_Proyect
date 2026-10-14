@@ -24,6 +24,26 @@ namespace NuiGrab
         [Header("Sonidos")]
         public AudioClip clip;
 
+    [Header("Daño a enemigos")]
+    [Tooltip("Daño que hace este objeto al golpear a un enemigo (lanzado o estrellado mientras se sostiene con la mano). 0 = no hace daño.")]
+    [SerializeField, Min(0)] private int _enemyDamage = 20;
+
+    [Tooltip("Velocidad minima (m/s) del golpe para hacer daño. Evita dañar al rozar o al apoyar el objeto en el enemigo.")]
+    [SerializeField, Min(0f)] private float _minDamageSpeed = 3f;
+
+    [Tooltip("El objeto se rompe al golpear a un enemigo (aunque no llegue a 'Break Speed').")]
+    [SerializeField] private bool _breakOnEnemyHit = true;
+
+    [Tooltip("Fuerza de la reaccion del enemigo (empuje, temblor, aturdimiento). 1 = como un espadazo normal.")]
+    [SerializeField, Range(0f, 3f)] private float _hitIntensity = 1f;
+
+    [Tooltip("Temblor de camara al golpear.")]
+    [SerializeField, Range(0f, 1f)] private float _hitCameraShake = 0.25f;
+
+    // Evita varios golpes al mismo enemigo en un mismo choque (varios colliders / frames seguidos).
+    private readonly Dictionary<UnityEngine.Object, float> _lastHitTime = new Dictionary<UnityEngine.Object, float>();
+    private const float HitCooldown = 0.4f;
+
 
     /// <summary>Se dispara justo antes de destruir el objeto.</summary>
     public event Action<Breakable> OnBroken;
@@ -55,6 +75,22 @@ namespace NuiGrab
 
       var speed = ImpactSpeed(collision, out var floorHit);
 
+      // Golpe a un enemigo: daño (y rotura si esta configurado).
+      if (collision.contactCount > 0)
+      {
+        var velocity = _rb.isKinematic && _grabManager != null ? _grabManager.HeldVelocity : -collision.relativeVelocity;
+
+        if (velocity.sqrMagnitude < speed * speed)
+        {
+          velocity = velocity.normalized * speed;
+        }
+
+        if (TryDamageEnemy(collision.collider, collision.GetContact(0).point, velocity))
+        {
+          return;
+        }
+      }
+
       if (floorHit && !_breakOnFloor)
       {
         return;
@@ -81,6 +117,59 @@ namespace NuiGrab
       }
 
       return false;
+    }
+
+    /// <summary>
+    /// Si 'other' es un enemigo (IDamageable que no es el jugador) y el golpe es
+    /// lo bastante rapido, le hace daño, lo hace reaccionar y (opcional) rompe
+    /// el objeto. Lo usan el choque fisico (objeto lanzado) y HandGrabManager
+    /// (objeto estrellado mientras se sostiene). Devuelve true si golpeo.
+    /// </summary>
+    public bool TryDamageEnemy(Collider other, Vector3 point, Vector3 velocity)
+    {
+      if (_broken || _enemyDamage <= 0 || other == null || velocity.magnitude < _minDamageSpeed)
+      {
+        return false;
+      }
+
+      if (other.GetComponentInParent<global::Player>() != null)
+      {
+        return false;
+      }
+
+      var damageable = other.GetComponentInParent<IDamageable>();
+      var key = damageable as UnityEngine.Object;
+
+      if (damageable == null || key == null)
+      {
+        return false;
+      }
+
+      if (_lastHitTime.TryGetValue(key, out var last) && Time.time - last < HitCooldown)
+      {
+        return true;
+      }
+
+      _lastHitTime[key] = Time.time;
+      damageable.TakeDamage(_enemyDamage);
+
+      var reaction = other.GetComponentInParent<HitReaction>();
+      if (reaction != null && _hitIntensity > 0f)
+      {
+        reaction.React(point, velocity, transform, _hitIntensity);
+      }
+
+      if (_hitCameraShake > 0f)
+      {
+        TopDownCamera.AddShake(_hitCameraShake);
+      }
+
+      if (_breakOnEnemyHit)
+      {
+        Break(point, velocity);
+      }
+
+      return true;
     }
 
     /// <summary>Rompe el objeto explicitamente (enemigos, armas, trampas...).</summary>

@@ -58,6 +58,12 @@ namespace Menus
     private float _idleSway = 0.15f;
 
     [Header("Al empezar")]
+    [SerializeField, Tooltip("Mostrar la configuracion de camara (webcam) antes de entrar al juego.")]
+    private bool _cameraSetupOnNewGame = true;
+
+    [SerializeField, Tooltip("Configuracion de camara. Vacio = se busca en la escena.")]
+    private CameraSetup _cameraSetup;
+
     [SerializeField] private Transition _transition = Transition.MoverCamara;
 
     [SerializeField, Min(0.1f), Tooltip("Duracion del viaje de camara o de cada fundido.")]
@@ -232,6 +238,35 @@ namespace Menus
 
       // 1. Desvanecer el menu (el fondo de fundido es aparte, no se desvanece).
       yield return FadeMenu(1f, 0f, _menuFadeDuration);
+
+      // 2. Configuracion de camara (webcam) antes de entrar al juego.
+      if (_cameraSetupOnNewGame)
+      {
+        var setup = _cameraSetup != null ? _cameraSetup : FindAnyObjectByType<CameraSetup>(FindObjectsInactive.Include);
+
+        if (setup != null)
+        {
+          if (!setup.gameObject.activeInHierarchy)
+          {
+            setup.gameObject.SetActive(true);
+          }
+
+          SetObjectsActive(true); // el sistema de manos debe estar activo
+          yield return setup.OpenAndWait(CameraSetup.Mode.NuevaPartida);
+
+          if (setup.WasCancelled)
+          {
+            // Volver al menu principal.
+            SetObjectsActive(false);
+            _starting = false;
+            yield return FadeMenu(0f, 1f, _menuFadeDuration);
+            _group.interactable = true;
+            _group.blocksRaycasts = true;
+            SelectFirst();
+            yield break;
+          }
+        }
+      }
 
       if (useFade)
       {

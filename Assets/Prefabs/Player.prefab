@@ -677,6 +677,8 @@ GameObject:
   - component: {fileID: 3279854708702544090}
   - component: {fileID: 5923717946685049922}
   - component: {fileID: 4092121402946877269}
+  - component: {fileID: 1599255050592130191}
+  - component: {fileID: 7660880855345057923}
   m_Layer: 3
   m_Name: Player
   m_TagString: Player
@@ -939,9 +941,14 @@ MonoBehaviour:
   _debugStickMagnitude: 0
   _debugMag01: 0
   _debugTargetSpeed: 0
-  _dodgeForce: 10
+  _dodgeForce: 9
   _dodgeDuration: 0.5
   _dodgeCooldown: 1
+  _dodgeCancelsAttack: 1
+  _dodgeCancelFrom: 0.415
+  _dodgeBlend: 0.198
+  _dodgeStateName: Dodge
+  _attackBufferTime: 0.35
   _attackLungeSpeed: 1.3
   _attackProfiles:
   - stateName: Attack1
@@ -1161,7 +1168,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerLockOn
   _player: {fileID: 4395897023668582851}
   _playerInput: {fileID: 3583433505056451716}
-  _lockOnDistance: 8.39
+  _lockOnDistance: 14.5
+  _stickThreshold: 0.7
+  _stickConeAngle: 60
+  _mouseRadius: 160
+  _aimHeight: 1
 --- !u!114 &3279854708702544090
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1285,6 +1296,65 @@ MonoBehaviour:
   _lockPunchScale: 1.45
   _lockPunchDuration: 0.25
   _retargetSpeed: 25
+--- !u!114 &1599255050592130191
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8103520398943621603}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d126c208fb7bd224aa9064c76c0d5a11, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerEquipment
+  _startWithSword: 1
+  _startWithShield: 1
+  _swordVisuals:
+  - {fileID: 7499728478311571362}
+  _shieldVisuals:
+  - {fileID: 2421086987542487776}
+--- !u!114 &7660880855345057923
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8103520398943621603}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7fa4e656399e356479a3b2a286678eee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerAudio
+  _swings:
+    clips:
+    - {fileID: 8300000, guid: 4051bf962700c1f42a0a8bf8cc015ebe, type: 3}
+    - {fileID: 8300000, guid: 18e46e1abb86def439847b2fb5f432be, type: 3}
+    - {fileID: 8300000, guid: 97c9601cbf725ed40901957d638c83ac, type: 3}
+    - {fileID: 8300000, guid: 4312a6c3b42589b4db9d235b86636a19, type: 3}
+    - {fileID: 8300000, guid: 58fe6a9462ad9a4409db854fa2c4ef55, type: 3}
+    - {fileID: 8300000, guid: 4ddcb77b59c094d44bfb0e35f0872855, type: 3}
+    - {fileID: 8300000, guid: 1c9d3bb6c0a4b0d45965dd706194fc80, type: 3}
+    - {fileID: 0}
+    volume: 0.2
+    pitchVariation: 0.08
+  _footsteps:
+    clips:
+    - {fileID: 8300000, guid: 4cf27de1b81a59a4785139935d5583c3, type: 3}
+    volume: 0.12
+    pitchVariation: 0.1
+  _walkStepInterval: 0.55
+  _runStepInterval: 0.3
+  _minStepSpeed: 0.6
+  _runSpeed: 6
+  _blocks:
+    clips:
+    - {fileID: 8300000, guid: 97cda21bb4c26eb46ad79ce2cd78c578, type: 3}
+    - {fileID: 8300000, guid: ffc63c7bc15a3dd47b18768774d22031, type: 3}
+    volume: 0.288
+    pitchVariation: 0.05
+  _output: {fileID: 0}
+  _spatialBlend: 0
 --- !u!1001 &3262966085260302181
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1765,6 +1835,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8e58d9b39cd0fc845846b3e5b99ef5c9, type: 3}
+--- !u!1 &2421086987542487776 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 8e58d9b39cd0fc845846b3e5b99ef5c9, type: 3}
+  m_PrefabInstance: {fileID: 3267366031903383473}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &3085736937206200410 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 8e58d9b39cd0fc845846b3e5b99ef5c9, type: 3}

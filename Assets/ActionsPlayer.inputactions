@@ -55,6 +55,16 @@
                     "interactions": "",
                     "initialStateCheck": false,
                     "priority": 0
+                },
+                {
+                    "name": "Unlock",
+                    "type": "Button",
+                    "id": "2b9dfd9b-cacc-47a1-a9e8-43803ef4f2cd",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false,
+                    "priority": 0
                 }
             ],
             "bindings": [
@@ -182,7 +192,7 @@
                 {
                     "name": "",
                     "id": "4d55a03d-2c70-4983-a834-4d976abe2517",
-                    "path": "<Keyboard>/f",
+                    "path": "<Mouse>/leftButton",
                     "interactions": "Tap",
                     "processors": "",
                     "groups": ";Keyboard",
@@ -255,6 +265,28 @@
                     "action": "Interact",
                     "isComposite": false,
                     "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "910d6c47-3278-4391-a0fd-41c10919e7a1",
+                    "path": "<Gamepad>/rightShoulder",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";GamePad",
+                    "action": "Unlock",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "6bba36f4-7a63-46b0-aaae-6914cca029d5",
+                    "path": "<Keyboard>/t",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Keyboard",
+                    "action": "Unlock",
+                    "isComposite": false,
+                    "isPartOfComposite": false
                 }
             ]
         }
@@ -278,6 +310,11 @@
                 {
                     "devicePath": "<Keyboard>",
                     "isOptional": false,
+                    "isOR": false
+                },
+                {
+                    "devicePath": "<Mouse>",
+                    "isOptional": true,
                     "isOR": false
                 }
             ]

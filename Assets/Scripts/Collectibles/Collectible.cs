@@ -1,12 +1,3 @@
-// Collectible.cs
-// Objeto coleccionable del mundo. Cuando el jugador entra en el radio de
-// interaccion aparece un aviso en pantalla; al pulsar Interact (F en teclado /
-// X del mando) se abre la vista de inspeccion (CollectibleInspector): fondo
-// difuminado, el modelo en primer plano -que se gira con la mano (puño
-// cerrado + mover), el stick o el raton- y el texto a la derecha.
-// Todo el contenido (titulo, subtitulo, descripcion y modelo) se edita desde
-// el Inspector. No hace falta montar nada mas en la escena: el detector de
-// cercania y la vista de inspeccion se crean solos la primera vez.
 
 using System;
 using System.Collections.Generic;
@@ -32,6 +23,12 @@ namespace Collectibles
 
     [Tooltip("Texto descriptivo. Admite rich text: <b>negrita</b>, <i>cursiva</i>, <color=#E8C66A>color</color>.")]
     [SerializeField, TextArea(5, 15)] private string _description = "";
+
+    [Tooltip("Icono para la cuadricula de coleccionables del menu de pausa (Estado). Vacio = se muestra el titulo.")]
+    [SerializeField] private Sprite _icon;
+
+    [Tooltip("Si es Espada o Escudo, al recogerlo el jugador lo equipa (PlayerEquipment) y aparece en Equipamiento en vez de en la cuadricula de coleccionables.")]
+    [SerializeField] private EquipmentSlot _equipment = EquipmentSlot.Ninguno;
 
     [Header("Modelo en primer plano")]
     [Tooltip("Prefab u objeto que se muestra en la inspeccion. Vacio = una copia visual de este mismo objeto.")]
@@ -93,6 +90,8 @@ namespace Collectibles
     public Vector3 InspectRotation => _inspectRotation;
     public float InspectScale => _inspectScale;
     public string PromptText => _promptText;
+    public Sprite Icon => _icon;
+    public EquipmentSlot Equipment => _equipment;
     public CollectibleInspectorView CustomInspectorView => _customInspectorView;
     public CollectiblePromptView CustomPromptView => _customPromptView;
     public string Id => string.IsNullOrEmpty(_id) ? $"{gameObject.scene.name}/{name}" : _id;
@@ -113,6 +112,7 @@ namespace Collectibles
       if (_rememberBetweenSessions && PlayerPrefs.GetInt(SaveKeyPrefix + Id, 0) == 1)
       {
         IsCollected = true;
+        Register();
 
         if (_hideAfterInspect)
         {
@@ -158,10 +158,34 @@ namespace Collectibles
           PlayerPrefs.Save();
         }
 
+        Register();
         Collected?.Invoke(this);
       }
 
       OnInspectOpened?.Invoke();
+    }
+
+    /// <summary>Equipamiento: se equipa. Coleccionable normal: va a la cuadricula de Estado.</summary>
+    private void Register()
+    {
+      if (_equipment == EquipmentSlot.Ninguno)
+      {
+        CollectibleJournal.Add(this);
+        return;
+      }
+
+      var equipment = PlayerEquipment.Instance != null
+        ? PlayerEquipment.Instance
+        : FindAnyObjectByType<PlayerEquipment>();
+
+      if (equipment != null)
+      {
+        equipment.Equip(_equipment, this);
+      }
+      else
+      {
+        Debug.LogWarning($"[Collectible] '{name}' es equipamiento ({_equipment}) pero el jugador no tiene PlayerEquipment.", this);
+      }
     }
 
     internal void NotifyClosed()

@@ -4816,7 +4816,7 @@ ParticleSystemRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5568780482160947546}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 0
   m_ReceiveShadows: 0
   m_DynamicOccludee: 1
@@ -4963,6 +4963,8 @@ MonoBehaviour:
   _mirrorX: 0
   _mirrorY: 1
   _logOpenness: 0
+  _activeAreaX: {x: 0.12, y: 0.88}
+  _activeAreaY: {x: 0.18, y: 0.78}
 --- !u!114 &7097287772122858993
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5008,6 +5010,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5508434089838885811}
+  - component: {fileID: 1199295732883228627}
+  - component: {fileID: 734322492315761110}
   m_Layer: 0
   m_Name: HandSystem
   m_TagString: Untagged
@@ -5033,3 +5037,59 @@ Transform:
   - {fileID: 6653768288988076274}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1199295732883228627
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9098646872064597726}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a1c637ad0188d84483214ce83d04759, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NuiGrab.TelekinesisVFX
+  _handTracker: {fileID: 0}
+  _grabManager: {fileID: 0}
+  _camera: {fileID: 0}
+  _tetherOrigin: {fileID: 0}
+  _additiveMaterial: {fileID: 2100000, guid: badff72f21a56d24486f7addbcf1369c, type: 2}
+  _openColor: {r: 0.48000002, g: 1.4399999, b: 1.6, a: 1.6}
+  _closedColor: {r: 1.6, g: 0.88000005, b: 0.24000001, a: 1.6}
+  _hoverColor: {r: 0.64000005, g: 1.6, b: 0.8, a: 1.6}
+  _holdingColor: {r: 1.8, g: 1.53, b: 0.54, a: 1.8}
+  _colorSpeed: 10
+  _cursorHeight: 0.35
+  _followSpeed: 18
+  _coreSize: 0.45
+  _haloSize: 1.4
+  _ringRadiusOpen: 0.65
+  _ringRadiusClosed: 0.32
+  _ringWidth: 0.06
+  _ringSpin: 120
+  _lightIntensity: 3
+  _lightRange: 3.5
+  _motesRate: 45
+  _ringSnapsToTarget: 1
+  _tether: 1
+  _tetherWidth: 0.14
+  _tetherArc: 0.8
+  _tetherWobble: 0.1
+  _tetherScroll: 4
+  _auraRate: 60
+  _burstCount: 40
+--- !u!114 &734322492315761110
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9098646872064597726}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 07551e4e47452c149b87d1a742aa9d42, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VegetationInteractor
+  _source: 1
+  _radius: 0.6
+  _offset: {x: 0, y: 0, z: 0}

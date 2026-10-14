@@ -37,6 +37,13 @@ public class Enemy : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
         hitReaction = GetComponent<HitReaction>();
+
+        // Daño por contacto provisional (hasta tener ataques animados).
+        // Si el prefab ya lo trae configurado, se respeta el suyo.
+        if (GetComponent<ContactDamage>() == null)
+        {
+            gameObject.AddComponent<ContactDamage>();
+        }
     }
 
     void Update()
@@ -145,6 +152,10 @@ public class Enemy : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        // El daño al jugador por contacto lo gestiona ContactDamage (con
+        // invulnerabilidad y escudo); aqui solo otros IDamageable.
+        if (other.GetComponentInParent<Player>() != null) return;
+
         IDamageable target = other.GetComponent<IDamageable>();
 
         if (target != null)

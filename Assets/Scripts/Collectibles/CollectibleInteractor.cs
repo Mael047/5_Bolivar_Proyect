@@ -192,7 +192,7 @@ namespace Collectibles
 
     private Collectible FindBest()
     {
-      if (Menus.MainMenu.IsOpen || _player == null || !_player.isActiveAndEnabled || _player.IsBusy)
+      if (Menus.MainMenu.IsOpen || Menus.PauseMenu.IsOpen || _player == null || !_player.isActiveAndEnabled || _player.IsBusy)
       {
         return null;
       }
