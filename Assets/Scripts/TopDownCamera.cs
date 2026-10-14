@@ -136,6 +136,35 @@ public class TopDownCamera : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Posicion y rotacion a las que la camara quiere llegar ahora mismo (sin
+    /// suavizado, temblor ni impactos). La usa el menu principal para hacer la
+    /// transicion hacia la camara de juego.
+    /// </summary>
+    public bool TryGetTargetPose(out Vector3 position, out Quaternion rotation)
+    {
+        rotation = Quaternion.Euler(_tiltAngle, _Angle, 0f);
+        position = transform.position;
+
+        if (_target == null)
+        {
+            return false;
+        }
+
+        position = _target.position + rotation * (Vector3.back * _distance) + Vector3.up * _height + _positionOffset;
+        return true;
+    }
+
+    /// <summary>Coloca la camara de golpe en su posicion objetivo (sin el arrastre del suavizado).</summary>
+    public void SnapToTarget()
+    {
+        if (TryGetTargetPose(out var position, out var rotation))
+        {
+            _smoothedPosition = position;
+            transform.SetPositionAndRotation(position, rotation);
+        }
+    }
+
     private void LateUpdate()
     {
         if (_target == null)

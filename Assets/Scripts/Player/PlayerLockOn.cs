@@ -21,9 +21,17 @@ public class PlayerLockOn : MonoBehaviour
 
     private bool _lockedOn;
     private Enemy _target;
+    private Enemy _candidate;
 
     public bool IsLockedOn => _lockedOn;
     public Enemy Target => _target;
+
+    /// <summary>
+    /// Enemigo que se fijaria si se pulsa L1 ahora mismo (el mas cercano en
+    /// rango). Null mientras hay lock-on activo o si no hay nadie en rango.
+    /// Lo usa LockOnIndicator para mostrar el marcador previo.
+    /// </summary>
+    public Enemy Candidate => _candidate;
     public Transform TargetTransform => _target != null ? _target.transform : null;
 
     private void Awake()
@@ -74,6 +82,7 @@ public class PlayerLockOn : MonoBehaviour
         {
             _lockedOn = true;
             _target = target;
+            _candidate = null;
         }
     }
 
@@ -81,8 +90,11 @@ public class PlayerLockOn : MonoBehaviour
     {
         if (!_lockedOn)
         {
+            _candidate = FindNearestEnemy();
             return;
         }
+
+        _candidate = null;
 
         // Mientras este en lock-on, se mantiene al enemigo mas cercano en rango.
         // Si el actual muere o sale del rango, cambia al siguiente o se desactiva.

@@ -1,0 +1,86 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &8791325229968791943
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1084006463258884685}
+  - component: {fileID: 7082793689090816698}
+  - component: {fileID: 2967473401461343660}
+  m_Layer: 0
+  m_Name: CollectibleSystem
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1084006463258884685
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8791325229968791943}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7082793689090816698
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8791325229968791943}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2c783031598ff0645a371f20d86a8c00, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Collectibles.CollectibleInspector
+  _view: {fileID: 125269694719020360, guid: dff46e64c12f8d84c9abbeef778e525b, type: 3}
+  _pauseGame: 1
+  _blurStrength: 4
+  _cameraFov: 28
+  _modelFill: 0.7
+  _msaa: 4
+  _stagePosition: {x: 0, y: -5000, z: 0}
+  _keyLightColor: {r: 1, g: 0.95, b: 0.85, a: 1}
+  _keyLightIntensity: 3
+  _rimLightColor: {r: 0.6, g: 0.75, b: 1, a: 1}
+  _rimLightIntensity: 2
+  _fadeDuration: 0.35
+  _textDelay: 0.15
+  _stickSpeed: 160
+  _mouseSensitivity: 0.25
+  _handSensitivity: 420
+  _handResponsiveness: 14
+  _inertiaDamping: 4
+  _idleSpin: 1
+  _idleSpinSpeed: 10
+  _idleSpinDelay: 2.5
+  _zoomRange: {x: 0.7, y: 1.7}
+  _zoomSpeed: 1.2
+--- !u!114 &2967473401461343660
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8791325229968791943}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d8838e793d7527d4a9ddcac6066035d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Collectibles.CollectibleInteractor
+  _player: {fileID: 0}
+  _interactActionName: Interact
+  _promptView: {fileID: 4711473040154336265, guid: 1202fef6484080f45be440f7afc760c3, type: 3}
+  _fadeSpeed: 12

@@ -676,6 +676,7 @@ GameObject:
   - component: {fileID: 1302896877427645896}
   - component: {fileID: 3279854708702544090}
   - component: {fileID: 5923717946685049922}
+  - component: {fileID: 4092121402946877269}
   m_Layer: 3
   m_Name: Player
   m_TagString: Player
@@ -1259,6 +1260,31 @@ MonoBehaviour:
     positionOffset: {x: -0.31, y: -0.47, z: 0.19}
   _blendSpeed: 10
   _preview: 0
+--- !u!114 &4092121402946877269
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8103520398943621603}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 272b701cf680d204c8986fc76a83eaa8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LockOnIndicator
+  _markerPrefab: {fileID: 6553356196535680543, guid: 39dd89abebcfae34688afbbf9fb003e4, type: 3}
+  _showCandidate: 1
+  _candidateColor: {r: 1, g: 1, b: 1, a: 0.85}
+  _lockedColor: {r: 1, g: 0.55, b: 0.15, a: 1}
+  _heightOffset: 0.35
+  _fadeSpeed: 14
+  _colorSpeed: 16
+  _bobAmplitude: 6
+  _bobSpeed: 3
+  _spinSpeed: 90
+  _lockPunchScale: 1.45
+  _lockPunchDuration: 0.25
+  _retargetSpeed: 25
 --- !u!1001 &3262966085260302181
 PrefabInstance:
   m_ObjectHideFlags: 0

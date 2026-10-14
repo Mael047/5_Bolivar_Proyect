@@ -276,6 +276,10 @@ public class Player : MonoBehaviour
     /// </summary>
     private void OnAttackPerformed(InputAction.CallbackContext context)
     {
+        // La F del teclado es tambien Interact: junto a un coleccionable (o con
+        // la inspeccion abierta) esa pulsacion examina el objeto, no ataca.
+        if (Collectibles.CollectibleInteractor.ShouldBlockAttack(context.control)) return;
+
         TriggerAttack();
     }
 
