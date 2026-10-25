@@ -15,6 +15,25 @@ namespace NuiGrab
 
     private float _lifetime;
     private Vector3 _baseScale;
+    private Mesh _ownedMesh;
+
+    /// <summary>
+    /// Registra una malla generada en runtime para liberarla al destruirse el
+    /// pedazo (las mallas creadas por codigo no las recoge el GC de Unity).
+    /// </summary>
+    public void SetOwnedMesh(Mesh mesh)
+    {
+      _ownedMesh = mesh;
+    }
+
+    private void OnDestroy()
+    {
+      if (_ownedMesh != null)
+      {
+        Destroy(_ownedMesh);
+        _ownedMesh = null;
+      }
+    }
 
     /// <summary>Inicializa el pedazo tras ser instanciado (llamado por Breakable).</summary>
     public void Init(float lifetime)

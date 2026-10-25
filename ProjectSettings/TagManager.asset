@@ -18,7 +18,7 @@ TagManager:
   - Grabbable
   - PuzzleScenery
   - 'Enemy '
-  - 
+  - _trackerPosition
   - 
   - 
   - 

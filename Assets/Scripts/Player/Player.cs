@@ -35,25 +35,191 @@ public class Player : MonoBehaviour
     [SerializeField] private float _debugMag01;
     [SerializeField] private float _debugTargetSpeed;
 
+    [Header("Dodge")]
+    [SerializeField] private float _dodgeForce = 15f; // Fuerza del empuje
+    [SerializeField] private float _dodgeDuration = 0.5f; // Cuánto dura el empuje
+    [SerializeField] private float _dodgeCooldown = 1f; // Tiempo de espera entre esquivas
+
+    [Header("Cancelar ataque con esquiva")]
+    [Tooltip("Permite cancelar un ataque (y el siguiente golpe del combo que estuviera en cola) esquivando.")]
+    [SerializeField] private bool _dodgeCancelsAttack = true;
+
+    [Tooltip("Desde que punto del golpe (0 = inicio, 1 = final) se puede cancelar con la esquiva. 0 = en cualquier momento.")]
+    [SerializeField, Range(0f, 1f)] private float _dodgeCancelFrom = 0f;
+
+    [Tooltip("Segundos de mezcla al entrar en la esquiva. Bajo = respuesta inmediata.")]
+    [SerializeField, Range(0f, 0.3f)] private float _dodgeBlend = 0.06f;
+
+    [Tooltip("Nombre del estado de esquiva en el Animator.")]
+    [SerializeField] private string _dodgeStateName = "Dodge";
+
+    [Tooltip("Segundos que un ataque pulsado queda 'en cola'. Pasado ese tiempo se descarta, para que no salga un golpe tarde (p. ej. al terminar una esquiva).")]
+    [SerializeField, Range(0.05f, 1f)] private float _attackBufferTime = 0.35f;
+
+    [Tooltip("Velocidad de empuje automático hacia adelante durante el ataque. " +
+             "Base para los ataques en modo 'Velocidad Constante'.")]
+    [SerializeField] private float _attackLungeSpeed = 3f;
+
+    public enum LungeMode
+    {
+        [Tooltip("Avanza a velocidad fija durante todo el ataque (Attack Lunge Speed x multiplicador).")]
+        VelocidadConstante,
+        [Tooltip("Recorre una distancia exacta siguiendo la curva; fuera de ella se queda plantado.")]
+        Distancia
+    }
+
+    [System.Serializable]
+    public class AttackProfile
+    {
+        [Tooltip("Nombre exacto del estado en el Animator (capa 0).")]
+        public string stateName = "Attack1";
+
+        [Tooltip("Daño que hace la espada durante este ataque.")]
+        [Min(0)] public int damage = 20;
+
+        [Tooltip("Multiplica el temblor, hit-stop, empuje y chispas del enemigo al conectar este golpe.")]
+        [Min(0f)] public float impactMultiplier = 1f;
+
+        [Tooltip("Lo que siente el jugador al conectar: congelado extra, camara lenta, " +
+                 "kick y zoom de camara, vibracion del mando y sonido.")]
+        public ImpactSettings impact = new ImpactSettings();
+
+        [Header("Avance")]
+        public LungeMode lungeMode = LungeMode.VelocidadConstante;
+
+        [Tooltip("Solo en 'Velocidad Constante': multiplica Attack Lunge Speed.")]
+        [Min(0f)] public float lungeSpeedMultiplier = 1f;
+
+        [Tooltip("Solo en 'Distancia': metros que avanza el personaje en este ataque.")]
+        [Min(0f)] public float lungeDistance = 2f;
+
+        [Tooltip("Solo en 'Distancia': X = tiempo normalizado del clip (0..1), " +
+                 "Y = fraccion de la distancia ya recorrida (0..1). Donde la curva " +
+                 "esta plana el personaje no se mueve; donde sube rapido, embiste.")]
+        public AnimationCurve lungeCurve = AnimationCurve.Linear(0f, 0f, 1f, 1f);
+
+        [System.NonSerialized] public int hash;
+    }
+
+    [Tooltip("Un perfil por golpe del combo. El estado del Animator debe llamarse igual que 'State Name'.")]
+    [SerializeField] private AttackProfile[] _attackProfiles =
+    {
+        new AttackProfile { stateName = "Attack1", damage = 20 },
+        new AttackProfile { stateName = "Attack2", damage = 20 },
+        new AttackProfile
+        {
+            // Estocada final: mas daño, golpe mas contundente y un paso largo
+            // hacia delante concentrado justo antes y durante el impacto
+            // (eventos del clip: hitbox activa entre 0.25 y 0.43).
+            stateName = "Attack3",
+            damage = 40,
+            impactMultiplier = 1.8f,
+            impact = new ImpactSettings
+            {
+                // El golpe mas duro: congelado largo, camara lenta que se
+                // recupera, la camara "recibe" la estocada y se acerca, y el
+                // mando vibra grave.
+                extraHitStop = 0.05f,
+                slowMotionDuration = 0.3f,
+                slowMotionScale = 0.3f,
+                cameraKick = 0.3f,
+                cameraZoomPunch = 0.07f,
+                rumbleLow = 0.85f,
+                rumbleHigh = 0.6f,
+                rumbleDuration = 0.22f
+            },
+            lungeMode = LungeMode.Distancia,
+            lungeDistance = 2.2f,
+            lungeCurve = new AnimationCurve(
+                new Keyframe(0f, 0f, 0f, 0f),
+                new Keyframe(0.12f, 0f, 0f, 0f),
+                new Keyframe(0.3f, 0.85f, 3f, 3f),
+                new Keyframe(0.45f, 1f, 0f, 0f),
+                new Keyframe(1f, 1f, 0f, 0f))
+        }
+    };
+
+    private int _dodgeStateHash;
+    private AttackProfile _currentAttack;
+    private int _lungeStateHash;
+    private float _lungePrevTime;
+
+    private bool _isDodging;
+    private float _attackPressedTime = -1f;
+    private float _dodgeTimer;
+    private float _dodgeCooldownTimer;
+    private Vector3 _dodgeDirection;
+
     private Rigidbody rb;
     private Vector2 moveInput;
     private PlayerLookAt _lookAt;
+    private PlayerEquipment _equipment;
     private PlayerInput _playerInput;
     private bool _isAttacking;
     private bool _hasEnteredAttackState;
     private bool _blockHeld;
 
     [SerializeField] private MeleeHitbox playerSwordHitbox;
+    [SerializeField] private Collider playerCollider;
 
-    // Agrega estos dos métodos en tu Player.cs (Serán llamados por los Animation Events)
+    /// <summary>Se dispara cuando un golpe empieza a cortar (evento AE_StartAttack del clip).</summary>
+    public event System.Action AttackSwing;
+
+    /// <summary>Se dispara al empezar cada golpe del combo (al entrar en su estado del Animator).</summary>
+    public event System.Action AttackStarted;
+
+    private int _lastAttackStateHash;
+
+    /// <summary>Se dispara cuando el escudo bloquea un golpe.</summary>
+    public event System.Action BlockedHit;
+
+    /// <summary>Lo llama quien hace daño cuando el escudo lo bloquea (sonido, efectos).</summary>
+    public void NotifyBlocked()
+    {
+        BlockedHit?.Invoke();
+    }
+
     public void AE_StartAttack()
     {
-        if (playerSwordHitbox != null) playerSwordHitbox.EnableHitbox();
+        // Durante la mezcla hacia la esquiva el clip de ataque aun puede
+        // lanzar su evento: no debe activar la espada.
+        if (playerSwordHitbox == null || _isDodging) return;
+
+        // El golpe que activa la hitbox define su daño y contundencia.
+        var attack = ResolveCurrentAttack(out _);
+        if (attack != null)
+        {
+            playerSwordHitbox.damage = attack.damage;
+            playerSwordHitbox.ImpactMultiplier = attack.impactMultiplier;
+            playerSwordHitbox.Impact = attack.impact;
+        }
+        else
+        {
+            playerSwordHitbox.ImpactMultiplier = 1f;
+            playerSwordHitbox.Impact = null;
+        }
+
+        playerSwordHitbox.EnableHitbox();
+        AttackSwing?.Invoke();
     }
 
     public void AE_EndAttack()
     {
         if (playerSwordHitbox != null) playerSwordHitbox.DisableHitbox();
+    }
+
+    public bool IsInvincible { get; private set; }
+
+    // Llama a este evento de animación al inicio del Dodge
+    public void AE_StartInvincibility()
+    {
+        IsInvincible = true;
+    }
+
+    // Llama a este evento de animación al final del Dodge
+    public void AE_EndInvincibility()
+    {
+        IsInvincible = false;
     }
 
     /// <summary>
@@ -78,13 +244,24 @@ public class Player : MonoBehaviour
     /// cubre durante un ataque: atacar cancela el block hasta terminar el ataque.
     /// </summary>
     public bool IsBlocking =>
-        _blockHeld && !_isAttacking && !IsInAttackingState() && !IsBusy;
+        _blockHeld && !_isAttacking && !IsInAttackingState() && !IsBusy &&
+        (_equipment == null || _equipment.HasShield);
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
         _lookAt = GetComponent<PlayerLookAt>();
+        _equipment = GetComponent<PlayerEquipment>();
+
+        if (_attackProfiles != null)
+        {
+            foreach (var profile in _attackProfiles)
+            {
+                if (profile != null) profile.hash = Animator.StringToHash(profile.stateName);
+            }
+        }
         _playerInput = GetComponent<PlayerInput>();
+        _dodgeStateHash = Animator.StringToHash(_dodgeStateName);
 
         if (_animator == null)
         {
@@ -103,6 +280,12 @@ public class Player : MonoBehaviour
             blockAction.started += OnBlockStarted;
             blockAction.canceled += OnBlockCanceled;
         }
+
+        var dodgeAction = _playerInput?.actions?.FindAction("Dodge", true);
+        if (dodgeAction != null)
+        {
+            dodgeAction.started += OnDodgePerformed;
+        }
     }
 
     private void OnDestroy()
@@ -119,6 +302,12 @@ public class Player : MonoBehaviour
             blockAction.started -= OnBlockStarted;
             blockAction.canceled -= OnBlockCanceled;
         }
+
+        var dodgeAction = _playerInput?.actions?.FindAction("Dodge", true);
+        if (dodgeAction != null)
+        {
+            dodgeAction.started -= OnDodgePerformed;
+        }
     }
 
     /// <summary>
@@ -129,6 +318,10 @@ public class Player : MonoBehaviour
     /// </summary>
     private void OnAttackPerformed(InputAction.CallbackContext context)
     {
+        // La F del teclado es tambien Interact: junto a un coleccionable (o con
+        // la inspeccion abierta) esa pulsacion examina el objeto, no ataca.
+        if (Collectibles.CollectibleInteractor.ShouldBlockAttack(context.control)) return;
+
         TriggerAttack();
     }
 
@@ -153,7 +346,8 @@ public class Player : MonoBehaviour
     /// <summary>Dispara un golpe. El AnimatorController resuelve la secuencia de combo.</summary>
     public void TriggerAttack()
     {
-        if (_animator == null)
+        // Sin espada no hay ataque (PlayerEquipment).
+        if (_animator == null || (_equipment != null && !_equipment.HasSword))
         {
             return;
         }
@@ -164,33 +358,142 @@ public class Player : MonoBehaviour
         }
 
         _animator.SetTrigger("Attack");
+        _attackPressedTime = Time.time;
+    }
+
+    private void OnDodgePerformed(InputAction.CallbackContext context)
+    {
+        // No esquivar durante otra esquiva ni con el cooldown activo.
+        if (_isDodging || _dodgeCooldownTimer > 0f) return;
+
+        // Durante un ataque solo se puede si se permite cancelar (y ya se paso
+        // el punto minimo del golpe).
+        var attacking = IsInAttackingState();
+        if (attacking && !CanCancelAttack()) return;
+        if (IsBusy && !attacking) return;
+
+        if (attacking)
+        {
+            // Corta el golpe actual y el siguiente del combo que estuviera en cola.
+            AE_EndAttack();
+            _isAttacking = false;
+        }
+
+        if (_lookAt != null) _lookAt.SetBusy(true);
+
+        if (_animator != null)
+        {
+            _animator.ResetTrigger("Attack");
+            _animator.ResetTrigger("Dodge");
+            _attackPressedTime = -1f;
+
+            // Directo al estado de esquiva desde donde este (ataque o locomocion):
+            // el Animator solo tiene la transicion Locomotion -> Dodge.
+            if (_dodgeStateHash != 0 && _animator.HasState(0, _dodgeStateHash))
+            {
+                _animator.CrossFadeInFixedTime(_dodgeStateHash, _dodgeBlend, 0);
+            }
+            else
+            {
+                _animator.SetTrigger("Dodge");
+            }
+        }
+
+        StartDodge();
+    }
+
+    private bool CanCancelAttack()
+    {
+        if (!_dodgeCancelsAttack) return false;
+        if (_dodgeCancelFrom <= 0f) return true;
+
+        ResolveCurrentAttack(out var info);
+        return info.normalizedTime >= _dodgeCancelFrom;
+    }
+
+    private void StartDodge()
+    {
+        _isDodging = true;
+        _dodgeTimer = _dodgeDuration;
+        _dodgeCooldownTimer = _dodgeCooldown; // Reinicia el temporizador aquí
+
+        if (moveInput.sqrMagnitude > 0.1f)
+        {
+            Transform camTransform = Camera.main.transform;
+            Vector3 camForward = camTransform.forward;
+            Vector3 camRight = camTransform.right;
+            camForward.y = 0f;
+            camRight.y = 0f;
+            camForward.Normalize();
+            camRight.Normalize();
+            _dodgeDirection = (camRight * moveInput.x + camForward * moveInput.y).normalized;
+
+            // Girar via Rigidbody: con interpolacion, cambiar solo el transform
+            // se pierde y el cuerpo vuelve a mirar al enemigo del lock-on.
+            var dodgeRotation = Quaternion.LookRotation(_dodgeDirection, Vector3.up);
+            rb.rotation = dodgeRotation;
+            transform.rotation = dodgeRotation;
+        }
+        else
+        {
+            _dodgeDirection = transform.forward;
+        }
     }
 
     private void Update()
     {
         var attacking = IsInAttackingState();
-        _isAttacking = attacking;
 
-        // La capa "BlockLayer" (indice 1) solo se ve mientras el jugador se cubre.
-        // Al atacar o estar ocupado, IsBlocking es false y la capa se apaga, dejando
-        // que el locomotion (piernas) siga sin el escudo en pantalla.
+        // Un ataque pulsado que no se uso a tiempo se descarta.
+        if (_attackPressedTime >= 0f && Time.time - _attackPressedTime > _attackBufferTime)
+        {
+            _attackPressedTime = -1f;
+            if (_animator != null) _animator.ResetTrigger("Attack");
+        }
+
+        // Flujo constante del cooldown
+        if (_dodgeCooldownTimer > 0f)
+        {
+            _dodgeCooldownTimer -= Time.deltaTime;
+        }
+
+        // Manejo del tiempo del dodge
+        if (_isDodging)
+        {
+            _dodgeTimer -= Time.deltaTime;
+            if (_dodgeTimer <= 0f)
+            {
+                _isDodging = false;
+            }
+        }
+
+        _isAttacking = attacking;
+        IsBusy = attacking || _isDodging;
+
+        // Deteccion del inicio de cada golpe (para sonidos / efectos).
+        var attackHash = 0;
+        if (attacking && !_isDodging && ResolveCurrentAttack(out var attackInfo) != null)
+        {
+            attackHash = attackInfo.shortNameHash;
+        }
+        if (attackHash != 0 && attackHash != _lastAttackStateHash)
+        {
+            AttackStarted?.Invoke();
+        }
+        _lastAttackStateHash = attackHash;
+
         if (_animator != null)
         {
             _animator.SetLayerWeight(1, IsBlocking ? 1f : 0f);
         }
 
-        if (!attacking)
+        if (!IsBusy)
         {
             if (_hasEnteredAttackState)
             {
                 _hasEnteredAttackState = false;
-
-                if (_lookAt != null)
-                {
-                    _lookAt.SetBusy(false);
-                }
+                if (_lookAt != null) _lookAt.SetBusy(false);
             }
-
             return;
         }
 
@@ -212,14 +515,78 @@ public class Player : MonoBehaviour
         return IsAttackName(current) || IsAttackName(next);
     }
 
-    private static bool IsAttackName(AnimatorStateInfo info)
+    private bool IsAttackName(AnimatorStateInfo info)
     {
-        return info.IsName("Attack1") || info.IsName("Attack2");
+        return FindProfile(info) != null;
+    }
+
+    private AttackProfile FindProfile(AnimatorStateInfo info)
+    {
+        if (_attackProfiles == null) return null;
+
+        foreach (var profile in _attackProfiles)
+        {
+            if (profile != null && profile.hash == info.shortNameHash)
+            {
+                return profile;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Ataque en curso. Durante una transicion de combo (Attack2 -> Attack3)
+    /// manda el estado de destino: el golpe nuevo ya ha empezado.
+    /// </summary>
+    private AttackProfile ResolveCurrentAttack(out AnimatorStateInfo info)
+    {
+        info = default;
+        if (_animator == null) return null;
+
+        if (_animator.IsInTransition(0))
+        {
+            var next = _animator.GetNextAnimatorStateInfo(0);
+            var nextProfile = FindProfile(next);
+            if (nextProfile != null)
+            {
+                info = next;
+                return nextProfile;
+            }
+        }
+
+        info = _animator.GetCurrentAnimatorStateInfo(0);
+        return FindProfile(info);
     }
 
     private void FixedUpdate()
     {
-        if (IsBusy)
+        // 1. LÓGICA DE EMPUJE DEL DODGE
+        if (_isDodging)
+        {
+            rb.linearVelocity = new Vector3(_dodgeDirection.x * _dodgeForce, rb.linearVelocity.y, _dodgeDirection.z * _dodgeForce);
+
+            // El cuerpo mira hacia donde esquiva durante toda la esquiva (aunque
+            // haya lock-on o mano detectada).
+            if (_dodgeDirection.sqrMagnitude > 0.001f)
+            {
+                rb.MoveRotation(Quaternion.LookRotation(_dodgeDirection, Vector3.up));
+            }
+            return;
+        }
+
+        // 2. LÓGICA DE IMPULSO DE ATAQUE
+        if (_isAttacking)
+        {
+            var lunge = transform.forward * AttackLungeSpeed();
+            rb.linearVelocity = new Vector3(lunge.x, rb.linearVelocity.y, lunge.z);
+            return;
+        }
+
+        _lungeStateHash = 0;
+
+        // 3. BLOQUEO PARA OTRAS ACCIONES (Si añades usos de objetos, curaciones, etc.)
+        if (IsBusy && !_isAttacking && !_isDodging)
         {
             rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
             return;
@@ -235,7 +602,17 @@ public class Player : MonoBehaviour
 
         if (magnitude > _deadzone)
         {
-            moveDir = new Vector3(input.x, 0f, input.y) / magnitude;
+            Transform camTransform = Camera.main.transform;
+
+            Vector3 camForward = camTransform.forward;
+            Vector3 camRight = camTransform.right;
+
+            camForward.y = 0f;
+            camRight.y = 0f;
+            camForward.Normalize();
+            camRight.Normalize();
+
+            moveDir = (camRight * input.x + camForward * input.y) / magnitude;
             targetSpeed = Mathf.Lerp(_walkSpeed, _runSpeed, _speedCurve.Evaluate(mag01));
 
             if (IsInAttackingState())
@@ -274,4 +651,53 @@ public class Player : MonoBehaviour
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotSpeed * Time.deltaTime);
         }
     }
+
+    /// <summary>
+    /// Velocidad de avance de este paso fisico segun el perfil del ataque.
+    /// En modo Distancia se deriva de la curva: lo que avanza la curva entre el
+    /// paso anterior y este, convertido en velocidad. Asi la distancia total no
+    /// depende de la duracion del clip ni de la velocidad del estado.
+    /// </summary>
+    private float AttackLungeSpeed()
+    {
+        _currentAttack = ResolveCurrentAttack(out var info);
+
+        if (_currentAttack == null)
+        {
+            _lungeStateHash = 0;
+            return _attackLungeSpeed;
+        }
+
+        if (_currentAttack.lungeMode == LungeMode.VelocidadConstante)
+        {
+            _lungeStateHash = 0;
+            return _attackLungeSpeed * _currentAttack.lungeSpeedMultiplier;
+        }
+
+        var t = Mathf.Clamp01(info.normalizedTime);
+
+        // Estado nuevo (o repetido): arranca la curva desde su inicio.
+        if (_lungeStateHash != info.shortNameHash || t < _lungePrevTime)
+        {
+            _lungeStateHash = info.shortNameHash;
+            _lungePrevTime = 0f;
+        }
+
+        var curve = _currentAttack.lungeCurve;
+        var delta = curve.Evaluate(t) - curve.Evaluate(_lungePrevTime);
+        _lungePrevTime = t;
+
+        // Nunca retrocede aunque la curva baje.
+        return Mathf.Max(0f, delta) * _currentAttack.lungeDistance / Time.fixedDeltaTime;
+    }
+
+    private bool IsInDodgeState()
+    {
+        if (_animator == null) return false;
+        var current = _animator.GetCurrentAnimatorStateInfo(0);
+        var next = _animator.GetNextAnimatorStateInfo(0);
+        // Cambia "Dodge" si tu estado en el Animator se llama diferente
+        return current.IsName("Dodge") || next.IsName("Dodge");
+    }
+
 }

@@ -30,7 +30,8 @@ namespace NuiGrab
     [SerializeField, Min(0f)] private float _liftHeight = 0.25f;
     [SerializeField, Min(0f)] private float _followSpeed = 100f;
     [SerializeField, Min(0f)] private float _targetSmoothing = 50f;
-    [SerializeField] private float _maxGrabDistance = 30f;
+    [SerializeField, Tooltip("Distancia maxima del rayo de agarre. Se usa como minimo: si el Far de la camara es mayor, se usa ese (con camara ortografica inclinada los objetos de arriba de la pantalla quedan lejos).")]
+    private float _maxGrabDistance = 30f;
     [SerializeField] private LayerMask _grabLayerMask = 1 << 8;
 
     [Header("Colisiones del objeto agarrado")]
@@ -77,6 +78,9 @@ namespace NuiGrab
 
   /// <summary>Objeto agarrado actualmente (null si la mano esta libre).</summary>
   public Rigidbody Held => _held;
+
+  /// <summary>Objeto agarrable al que apunta la mano ahora (null si ninguno o si ya sostiene algo).</summary>
+  public Rigidbody Hovered => _hovered;
 
   /// <summary>
   /// Velocidad estimada del objeto agarrado, derivada del seguimiento manual
@@ -219,13 +223,14 @@ namespace NuiGrab
       // Ultima posicion conocida: sigue funcionando durante el periodo de gracia.
       var hand = _lastKnownViewport;
       var ray = ScreenRay(hand);
+      var maxDistance = Mathf.Max(_maxGrabDistance, _camera.farClipPlane);
 
       RaycastHit hit;
 
       // Primero un rayo preciso; si falla (ruido del tracking), una esfera
       // tolerante a lo largo del rayo para no perder el objeto de vista.
-      if (!Physics.Raycast(ray, out hit, _maxGrabDistance, _grabLayerMask, QueryTriggerInteraction.Ignore) &&
-          !Physics.SphereCast(ray.origin, _grabSearchRadius, ray.direction, out hit, _maxGrabDistance, _grabLayerMask, QueryTriggerInteraction.Ignore))
+      if (!Physics.Raycast(ray, out hit, maxDistance, _grabLayerMask, QueryTriggerInteraction.Ignore) &&
+          !Physics.SphereCast(ray.origin, _grabSearchRadius, ray.direction, out hit, maxDistance, _grabLayerMask, QueryTriggerInteraction.Ignore))
       {
         return null;
       }
@@ -365,6 +370,13 @@ namespace NuiGrab
       var breakable = _held.GetComponent<Breakable>();
 
       if (breakable == null || breakable.IsBroken)
+      {
+        return;
+      }
+
+      // Estrellar el objeto contra un enemigo le hace daño.
+      var hitDirection = (hit.point - _held.position).normalized;
+      if (breakable.TryDamageEnemy(hit.collider, hit.point, hitDirection * intendedSpeed))
       {
         return;
       }

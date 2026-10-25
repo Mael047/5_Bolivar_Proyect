@@ -17,8 +17,15 @@ public class Enemy : MonoBehaviour
     public float viewAngle = 90f;
     public LayerMask obstacleMask;
 
+    [Header("Estadísticas")]
+    public int Damage = 10;
+
     private Rigidbody rb;
+    private HitReaction hitReaction;
     public bool attack;
+
+    /// <summary>True mientras la IA translada en este frame (para la animacion de caminar).</summary>
+    public bool IsMovingNow { get; private set; }
 
 
     void Start()
@@ -29,10 +36,27 @@ public class Enemy : MonoBehaviour
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
+        hitReaction = GetComponent<HitReaction>();
+
+        // Daño por contacto provisional (hasta tener ataques animados).
+        // Si el prefab ya lo trae configurado, se respeta el suyo.
+        if (GetComponent<ContactDamage>() == null)
+        {
+            gameObject.AddComponent<ContactDamage>();
+        }
     }
 
     void Update()
     {
+        IsMovingNow = false;
+
+        // Mientras esta aturdido por un golpe no patrulla ni persigue: si no,
+        // el Translate de la IA anularia el empuje hacia atras.
+        if (hitReaction != null && hitReaction.IsStunned)
+        {
+            return;
+        }
+
         Comportamiento();
     }
 
@@ -55,6 +79,7 @@ public class Enemy : MonoBehaviour
                 transform.rotation = Quaternion.RotateTowards(transform.rotation, rotation, 3f);
 
                 transform.Translate(Vector3.forward * speedDetected * Time.deltaTime);
+                IsMovingNow = true;
             }
             else
             {
@@ -87,6 +112,7 @@ public class Enemy : MonoBehaviour
                 case 2:
                     transform.rotation = Quaternion.RotateTowards(transform.rotation, angulo, 0.5f);
                     transform.Translate(Vector3.forward * speed * Time.deltaTime);
+                    IsMovingNow = true;
                     break;
             }
         }
@@ -124,7 +150,26 @@ public class Enemy : MonoBehaviour
         attack = false;
     }
 
-   
+    private void OnTriggerEnter(Collider other)
+    {
+        // El daño al jugador por contacto lo gestiona ContactDamage (con
+        // invulnerabilidad y escudo); aqui solo otros IDamageable.
+        if (other.GetComponentInParent<Player>() != null) return;
+
+        IDamageable target = other.GetComponent<IDamageable>();
+
+        if (target != null)
+        {
+            Player player = other.GetComponent<Player>();
+            if (player != null && player.IsInvincible)
+            {
+                return;
+            }
+
+            target.TakeDamage(Damage);
+        }
+    }
+
     private void OnDrawGizmosSelected()
     {
         // Radio de visión

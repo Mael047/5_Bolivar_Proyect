@@ -30,6 +30,7 @@ public class PlayerLookAt : MonoBehaviour
     [SerializeField, Min(0f)] private float _weightSmoothing = 8f;
 
     private Player _player;
+    private PlayerLockOn _lockOn;
     private Rigidbody _rb;
     private Animator _animator;
     private Vector3 _lookTarget;
@@ -51,6 +52,7 @@ public class PlayerLookAt : MonoBehaviour
     private void Awake()
     {
         _player = GetComponent<Player>();
+        _lockOn = GetComponent<PlayerLockOn>();
         _rb = GetComponent<Rigidbody>();
         _animator = GetComponentInChildren<Animator>();
         Facing = transform.forward;
@@ -70,33 +72,50 @@ public class PlayerLookAt : MonoBehaviour
     {
         if (_player != null)
         {
-            _player.RotateToMovement = !HasHand;
+            // Prioridad de rotacion: si hay mano o lock-on, el Player no rota al
+            // movimiento (PlayerLookAt escribe la rotacion del cuerpo).
+            var lockOnActive = _lockOn != null && _lockOn.IsLockedOn;
+            _player.RotateToMovement = !HasHand && !lockOnActive;
         }
     }
 
     private void FixedUpdate()
     {
-        if (!HasHand || _busy)
+        if (_busy)
         {
             Facing = transform.forward;
             return;
         }
 
-        _cursorTarget = ComputeCursor();
-
-        if (_rb != null)
+        // Prioridad mano > lock-on.
+        if (HasHand)
         {
-            var toCursor = _cursorTarget - transform.position;
-            toCursor.y = 0f;
-
-            if (toCursor.sqrMagnitude > 0.0001f)
-            {
-                var targetRotation = Quaternion.LookRotation(toCursor, Vector3.up);
-                _rb.MoveRotation(Quaternion.RotateTowards(transform.rotation, targetRotation, _turnSpeed * Time.deltaTime));
-            }
+            _cursorTarget = ComputeCursor();
+            RotateTowards(_cursorTarget);
+        }
+        else if (_lockOn != null && _lockOn.IsLockedOn && _lockOn.TargetTransform != null)
+        {
+            RotateTowards(_lockOn.TargetTransform.position);
         }
 
         Facing = transform.forward;
+    }
+
+    private void RotateTowards(Vector3 worldPoint)
+    {
+        if (_rb == null)
+        {
+            return;
+        }
+
+        var toTarget = worldPoint - transform.position;
+        toTarget.y = 0f;
+
+        if (toTarget.sqrMagnitude > 0.0001f)
+        {
+            var targetRotation = Quaternion.LookRotation(toTarget, Vector3.up);
+            _rb.MoveRotation(Quaternion.RotateTowards(transform.rotation, targetRotation, _turnSpeed * Time.deltaTime));
+        }
     }
 
     private void LateUpdate()

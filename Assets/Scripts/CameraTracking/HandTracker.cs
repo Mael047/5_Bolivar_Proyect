@@ -1,6 +1,8 @@
 // HandTracker.cs
 // Reutiliza el Bootstrap del plugin MediaPipe (webcam + modelo + glog) y expone
 // la posicion de la palma (normalizada) y la apertura de la mano (puño abierto/cerrado).
+// Permite elegir la webcam en vivo (SelectCamera) y recuerda la elegida entre
+// sesiones (PlayerPrefs), para la pantalla de configuracion de camara.
 
 using System;
 using System.Collections;
@@ -24,6 +26,15 @@ namespace NuiGrab
     [SerializeField] private bool _mirrorY = true;
     [SerializeField] private bool _logOpenness;
 
+    [Header("Zona activa de la webcam")]
+    [Tooltip("Parte de la imagen de la webcam (0..1, de izquierda a derecha) que cubre todo el ancho de la pantalla. " +
+             "Mas estrecha = llegas a los bordes moviendo menos la mano.")]
+    [SerializeField] private Vector2 _activeAreaX = new Vector2(0.12f, 0.88f);
+
+    [Tooltip("Parte de la imagen (0..1, de abajo a arriba) que cubre todo el alto de la pantalla. " +
+             "El limite superior bajo evita tener que subir la mano hasta el borde, donde los dedos se salen del cuadro y se pierde el tracking.")]
+    [SerializeField] private Vector2 _activeAreaY = new Vector2(0.18f, 0.78f);
+
     private readonly HandLandmarkDetectionConfig _config = new HandLandmarkDetectionConfig();
 
     private Bootstrap _bootstrap;
@@ -33,7 +44,11 @@ namespace NuiGrab
     private readonly Stopwatch _stopwatch = new Stopwatch();
     private Coroutine _runCoroutine;
 
+    private const string CameraPrefKey = "nui.cameraName";
+
     private volatile bool _handDetected;
+    private bool _restartRequested;
+    private int _pendingCamera = -1;
     private volatile float _palmX;
     private volatile float _palmY;
     private volatile float _openness;
@@ -44,6 +59,57 @@ namespace NuiGrab
     public float Openness => _openness;
 
     public bool MirrorX => _mirrorX;
+
+    /// <summary>Nombres de las webcams conectadas.</summary>
+    public static string[] AvailableCameras
+    {
+      get
+      {
+        var devices = WebCamTexture.devices;
+        var names = new string[devices.Length];
+
+        for (var i = 0; i < devices.Length; i++)
+        {
+          names[i] = devices[i].name;
+        }
+
+        return names;
+      }
+    }
+
+    /// <summary>Webcam en uso (o la guardada, si aun no ha arrancado).</summary>
+    public string CurrentCamera => _imageSource != null && _imageSource.sourceName != null
+      ? _imageSource.sourceName
+      : PlayerPrefs.GetString(CameraPrefKey, "");
+
+    /// <summary>True cuando la webcam esta dando imagen.</summary>
+    public bool IsCameraReady => _imageSource != null && _imageSource.isPlaying && !_restartRequested;
+
+    /// <summary>
+    /// Cambia de webcam (indice de AvailableCameras) y la guarda como preferida.
+    /// El cambio se hace al terminar el frame en curso, sin cortar el tracking a medias.
+    /// </summary>
+    public void SelectCamera(int index)
+    {
+      var names = AvailableCameras;
+
+      if (index < 0 || index >= names.Length)
+      {
+        return;
+      }
+
+      PlayerPrefs.SetString(CameraPrefKey, names[index]);
+      PlayerPrefs.Save();
+
+      if (names[index] == CurrentCamera && IsCameraReady)
+      {
+        return;
+      }
+
+      _handDetected = false;
+      _pendingCamera = index;
+      _restartRequested = true;
+    }
 
     private void Awake()
     {
@@ -58,8 +124,23 @@ namespace NuiGrab
     /// <summary>Posicion de la palma normalizada (0..1) en coordenadas de la imagen (x izquierda-derecha, y arriba-abajo).</summary>
     public Vector2 HandPosition01 => new Vector2(_palmX, _palmY);
 
-    /// <summary>Posicion de la mano en coordenadas de viewport de Unity (0..1, y hacia arriba), con espejo aplicado.</summary>
+    /// <summary>
+    /// Posicion de la mano en coordenadas de viewport de Unity (0..1, y hacia arriba), con espejo
+    /// aplicado y reescalada a la zona activa: el centro de la webcam cubre toda la pantalla.
+    /// </summary>
     public Vector2 HandViewportPosition
+    {
+      get
+      {
+        var raw = HandViewportPositionRaw;
+        return new Vector2(
+          Remap(raw.x, _activeAreaX),
+          Remap(raw.y, _activeAreaY));
+      }
+    }
+
+    /// <summary>Posicion de la mano en la imagen completa de la webcam (sin zona activa).</summary>
+    public Vector2 HandViewportPositionRaw
     {
       get
       {
@@ -67,6 +148,13 @@ namespace NuiGrab
         var y = _mirrorY ? 1f - _palmY : _palmY;
         return new Vector2(Mathf.Clamp01(x), Mathf.Clamp01(y));
       }
+    }
+
+    private static float Remap(float value, Vector2 range)
+    {
+      var min = Mathf.Clamp01(Mathf.Min(range.x, range.y));
+      var max = Mathf.Clamp01(Mathf.Max(range.x, range.y));
+      return max - min < 0.05f ? value : Mathf.Clamp01(Mathf.InverseLerp(min, max, value));
     }
 
     private IEnumerator Start()
@@ -114,11 +202,50 @@ namespace NuiGrab
       _handLandmarker = HandLandmarker.CreateFromOptions(options, GpuManager.GpuResources);
       _imageSource = ImageSourceProvider.ImageSource;
 
+      // Webcam guardada en la configuracion de camara (si sigue conectada).
+      var saved = PlayerPrefs.GetString(CameraPrefKey, "");
+      var candidates = _imageSource.sourceCandidateNames;
+
+      if (!string.IsNullOrEmpty(saved) && candidates != null)
+      {
+        var index = System.Array.IndexOf(candidates, saved);
+
+        if (index >= 0)
+        {
+          _imageSource.SelectSource(index);
+        }
+      }
+
+      // Bucle de la webcam: se repite al cambiar de camara.
+      while (true)
+      {
+        yield return CaptureLoop();
+
+        _imageSource.Stop();
+        _textureFramePool?.Dispose();
+        _textureFramePool = null;
+
+        if (_pendingCamera >= 0)
+        {
+          var names = _imageSource.sourceCandidateNames;
+          var cameraName = AvailableCameras[_pendingCamera];
+          var sourceIndex = names != null ? System.Array.IndexOf(names, cameraName) : -1;
+          _imageSource.SelectSource(sourceIndex >= 0 ? sourceIndex : _pendingCamera);
+          _pendingCamera = -1;
+        }
+
+        _restartRequested = false;
+      }
+    }
+
+    private IEnumerator CaptureLoop()
+    {
       yield return _imageSource.Play();
 
       if (!_imageSource.isPrepared)
       {
-        Debug.LogError("Failed to start ImageSource, exiting...");
+        Debug.LogError("Failed to start ImageSource; esperando a que se elija otra camara.");
+        yield return new WaitUntil(() => _restartRequested);
         yield break;
       }
 
@@ -133,9 +260,14 @@ namespace NuiGrab
       var waitUntilReqDone = new WaitUntil(() => req.done);
       var waitForEndOfFrame = new WaitForEndOfFrame();
 
-      _stopwatch.Restart();
+      // El reloj no se reinicia al cambiar de camara: MediaPipe exige
+      // marcas de tiempo siempre crecientes.
+      if (!_stopwatch.IsRunning)
+      {
+        _stopwatch.Start();
+      }
 
-      while (true)
+      while (!_restartRequested)
       {
         if (!_textureFramePool.TryGetTextureFrame(out var textureFrame))
         {
