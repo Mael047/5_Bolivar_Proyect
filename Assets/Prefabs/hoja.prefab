@@ -1,0 +1,157 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &6150924220695086465
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8845686984109603978}
+  - component: {fileID: 2597228588576890926}
+  - component: {fileID: 1567137422232136575}
+  - component: {fileID: 5391537659483294830}
+  - component: {fileID: 5912645964855821248}
+  m_Layer: 0
+  m_Name: hoja
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8845686984109603978
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6150924220695086465}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -62.084118, y: 0.618, z: 92.35701}
+  m_LocalScale: {x: 6.5154, y: 6.5154, z: 6.5154}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!33 &2597228588576890926
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6150924220695086465}
+  m_Mesh: {fileID: -5902744442002927232, guid: eeb738d1844de0a4281fdf7bb729cc19, type: 3}
+--- !u!23 &1567137422232136575
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6150924220695086465}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 1117688784972154105, guid: eeb738d1844de0a4281fdf7bb729cc19, type: 3}
+  - {fileID: 4993807028175135196, guid: eeb738d1844de0a4281fdf7bb729cc19, type: 3}
+  - {fileID: 6985855480758575059, guid: eeb738d1844de0a4281fdf7bb729cc19, type: 3}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &5391537659483294830
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6150924220695086465}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2388ea1160d6e5840bc2e81af2ef8172, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FloatingPickup
+  _popDuration: 0.7
+  _popOvershoot: 0.5
+  _growOnSpawn: 1
+  _hoverHeight: 0.9
+  _bobAmplitude: 0.12
+  _bobSpeed: 2
+  _spinSpeed: 60
+  _tilt: {x: 0, y: 0, z: 0}
+  _groundMask:
+    serializedVersion: 2
+    m_Bits: 2707
+  _glowColor: {r: 1, g: 0.85, b: 0.45, a: 1}
+  _lightIntensity: 2.5
+  _lightRange: 3
+  _modelGlow: 0.6
+  _pulseSpeed: 2.5
+  _pulseAmount: 0.35
+  _halo: 1
+  _haloSize: 2.2
+  _haloOpacity: 0.35
+  _sparkles: 1
+  _sparkleRate: 10
+  _effectMaterial: {fileID: 0}
+--- !u!114 &5912645964855821248
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6150924220695086465}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a951c4c4e93068649b411a4540f98353, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HealthPickup
+  _healAmount: 20
+  _onlyIfHurt: 1
+  _pickupRadius: 0.9
+  _magnetRadius: 3
+  _magnetSpeed: 9
+  _playerCenterHeight: 0.9
+  _lifetime: 0
+  _blinkTime: 2.5
+  _pickupSound: {fileID: 0}
+  _volume: 0.8
+  _pickupEffect: {fileID: 0}
+  OnPickedUp:
+    m_PersistentCalls:
+      m_Calls: []
