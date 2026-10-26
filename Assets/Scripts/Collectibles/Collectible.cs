@@ -6,6 +6,14 @@ using UnityEngine.Events;
 
 namespace Collectibles
 {
+  public enum CollectibleKind
+  {
+    [Tooltip("Se guarda en Estado (o se equipa) y desaparece al recogerlo.")]
+    Coleccionable,
+    [Tooltip("Letrero / tutorial: se lee las veces que quieras, no se guarda ni desaparece.")]
+    Letrero
+  }
+
   [DisallowMultipleComponent]
   public class Collectible : MonoBehaviour
   {
@@ -13,6 +21,9 @@ namespace Collectibles
     private const float MaxHeightDifference = 3f;
 
     private static readonly List<Collectible> s_active = new List<Collectible>();
+
+    [Tooltip("Coleccionable: va al inventario. Letrero: solo se lee (indicaciones, tutoriales), no se guarda ni desaparece.")]
+    [SerializeField] private CollectibleKind _kind = CollectibleKind.Coleccionable;
 
     [Header("Contenido")]
     [Tooltip("Titulo grande que aparece a la derecha del objeto.")]
@@ -83,13 +94,18 @@ namespace Collectibles
     /// <summary>Se dispara la primera vez que se examina cada coleccionable.</summary>
     public static event Action<Collectible> Collected;
 
+    public CollectibleKind Kind => _kind;
+
+    /// <summary>True si es un letrero (no se guarda en el inventario).</summary>
+    public bool IsSign => _kind == CollectibleKind.Letrero;
+
     public string Title => _title;
     public string Subtitle => _subtitle;
     public string Description => _description;
     public GameObject InspectModel => _inspectModel;
     public Vector3 InspectRotation => _inspectRotation;
     public float InspectScale => _inspectScale;
-    public string PromptText => _promptText;
+    public string PromptText => IsSign && _promptText == "Examinar" ? "Leer" : _promptText;
     public Sprite Icon => _icon;
     public EquipmentSlot Equipment => _equipment;
     public CollectibleInspectorView CustomInspectorView => _customInspectorView;
@@ -101,7 +117,7 @@ namespace Collectibles
 
     public Vector3 InteractPoint => transform.TransformPoint(_interactOffset);
     public Vector3 PromptPoint => InteractPoint + Vector3.up * _promptHeight;
-    public bool CanInteract => isActiveAndEnabled && !(IsCollected && _hideAfterInspect);
+    public bool CanInteract => isActiveAndEnabled && (IsSign || !(IsCollected && _hideAfterInspect));
 
     private void Awake()
     {
@@ -109,7 +125,7 @@ namespace Collectibles
       CollectibleInteractor.HideIfSceneObject(_customInspectorView);
       CollectibleInteractor.HideIfSceneObject(_customPromptView);
 
-      if (_rememberBetweenSessions && PlayerPrefs.GetInt(SaveKeyPrefix + Id, 0) == 1)
+      if (!IsSign && _rememberBetweenSessions && PlayerPrefs.GetInt(SaveKeyPrefix + Id, 0) == 1)
       {
         IsCollected = true;
         Register();
@@ -148,6 +164,13 @@ namespace Collectibles
 
     internal void NotifyOpened()
     {
+      if (IsSign)
+      {
+        // Los letreros solo se leen: no van al inventario ni se marcan como recogidos.
+        OnInspectOpened?.Invoke();
+        return;
+      }
+
       if (!IsCollected)
       {
         IsCollected = true;
@@ -192,7 +215,7 @@ namespace Collectibles
     {
       OnInspectClosed?.Invoke();
 
-      if (_hideAfterInspect)
+      if (_hideAfterInspect && !IsSign)
       {
         gameObject.SetActive(false);
       }

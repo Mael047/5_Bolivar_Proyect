@@ -104,6 +104,9 @@ namespace Menus
     /// <summary>Indice (0..N-1) de la pantalla que esta de frente.</summary>
     public int CurrentPage => PageCount == 0 ? 0 : Wrap(Mathf.RoundToInt(_target));
 
+    /// <summary>Pantalla que esta de frente (null si no hay pantallas).</summary>
+    public PauseMenuPage Current => PageCount == 0 ? null : _pages[CurrentPage];
+
     private void Awake()
     {
       _canvas = GetComponent<Canvas>();
