@@ -18,9 +18,12 @@ public class PlayerLookAt : MonoBehaviour
     [SerializeField, Min(0f)] private float _turnSpeed = 300f;
 
     [Header("Look target")]
+    [SerializeField, Tooltip("Usa la altura del jugador como suelo para apuntar (recomendado en terrenos con desniveles). Apagado = Floor Y fijo.")]
+    private bool _floorFromPlayer = true;
     [SerializeField] private float _floorY = 0f;
     [SerializeField, Min(0f)] private float _lookHeightRange = 2.5f;
-    [SerializeField, Min(0f)] private float _lookDistanceMax = 20f;
+    [SerializeField, Min(0f), Tooltip("Distancia horizontal maxima del punto mirado respecto al jugador.")]
+    private float _lookDistanceMax = 20f;
     [SerializeField, Min(0f)] private float _lookSmoothing = 15f;
 
     [Header("Look weights")]
@@ -151,13 +154,27 @@ public class PlayerLookAt : MonoBehaviour
     {
         var vp = _handTracker.HandViewportPosition;
         var ray = _camera.ScreenPointToRay(new Vector3(vp.x * _camera.pixelWidth, vp.y * _camera.pixelHeight, 0f));
-        var plane = new Plane(Vector3.up, new Vector3(0f, _floorY, 0f));
+        var floor = _floorFromPlayer ? transform.position.y : _floorY;
+        var plane = new Plane(Vector3.up, new Vector3(0f, floor, 0f));
 
-        if (plane.Raycast(ray, out var distance) && distance > 0f)
+        if (!plane.Raycast(ray, out var distance) || distance <= 0f)
         {
-            return ray.GetPoint(Mathf.Min(distance, _lookDistanceMax));
+            return transform.position + Facing;
         }
 
-        return transform.position;
+        // El limite se mide en horizontal desde el jugador, no a lo largo del
+        // rayo de la camara: con camara alejada el rayo es largo y cortarlo
+        // dejaba el punto en el aire cerca de la camara (parte baja de la
+        // pantalla), por eso no miraba hacia arriba de la pantalla.
+        var point = ray.GetPoint(distance);
+        var offset = point - transform.position;
+        offset.y = 0f;
+
+        if (_lookDistanceMax > 0f && offset.magnitude > _lookDistanceMax)
+        {
+            offset = offset.normalized * _lookDistanceMax;
+        }
+
+        return new Vector3(transform.position.x + offset.x, floor, transform.position.z + offset.z);
     }
 }

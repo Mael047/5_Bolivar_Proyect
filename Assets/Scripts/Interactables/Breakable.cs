@@ -15,6 +15,9 @@ namespace NuiGrab
     [SerializeField] private GameObject _containedPickup;
     [SerializeField] private GameObject[] _fragmentPrefabsOverride;
 
+    [Tooltip("Los pedazos no chocan con el jugador ni con los enemigos (no los levantan al pisarlos). Siguen cayendo y rebotando en el suelo.")]
+    [SerializeField] private bool _fragmentsIgnoreCharacters = true;
+
     [Header("Textura de los fragmentos")]
     [Tooltip("0 = cada pedazo usa un color plano tomado del punto de la malla " +
              "original mas cercano (ideal para atlas de paleta). 1 = UV completas " +
@@ -23,6 +26,22 @@ namespace NuiGrab
 
         [Header("Sonidos")]
         public AudioClip clip;
+
+    [Header("Solo con espada (puertas, barricadas...)")]
+    [Tooltip("Solo se rompe con la espada del jugador: cajas, objetos lanzados o la mano no le hacen nada. El objeto queda fijo (Rigidbody kinematico).")]
+    [SerializeField] private bool _onlySword;
+
+    [Tooltip("Espadazos necesarios para romperlo.")]
+    [SerializeField, Min(1)] private int _swordHits = 1;
+
+    [Tooltip("Sonido de cada espadazo que todavia no lo rompe (vacio = ninguno).")]
+    [SerializeField] private AudioClip _swordHitClip;
+
+    [Tooltip("Temblor de camara en cada espadazo que no lo rompe.")]
+    [SerializeField, Range(0f, 1f)] private float _swordHitShake = 0.15f;
+
+    [Tooltip("Cuanto se sacude el objeto (m) al recibir un espadazo.")]
+    [SerializeField, Min(0f)] private float _swordHitWobble = 0.06f;
 
     [Header("Daño a enemigos")]
     [Tooltip("Daño que hace este objeto al golpear a un enemigo (lanzado o estrellado mientras se sostiene con la mano). 0 = no hace daño.")]
@@ -49,21 +68,96 @@ namespace NuiGrab
     public event Action<Breakable> OnBroken;
 
     public bool IsBroken => _broken;
+
+    /// <summary>True si solo se puede romper con la espada.</summary>
+    public bool OnlySword => _onlySword;
     public float BreakSpeed => _breakSpeed;
     public bool BreaksOnFloor => _breakOnFloor;
 
     private Rigidbody _rb;
     private HandGrabManager _grabManager;
     private bool _broken;
+    private int _swordHitCount;
+    private Coroutine _wobbleRoutine;
+    private Vector3 _restPosition;
 
     private void Awake()
     {
       _rb = GetComponent<Rigidbody>();
+
+      if (_onlySword)
+      {
+        // Puertas y barricadas: fijas, nada las empuja.
+        _rb.isKinematic = true;
+      }
+
+      _restPosition = transform.position;
+    }
+
+    /// <summary>
+    /// Golpe de la espada del jugador. Si el objeto es "Solo con espada" cuenta
+    /// los golpes hasta romperse; si no, se rompe directamente.
+    /// </summary>
+    public void HitWithSword(Vector3 point, Vector3 direction)
+    {
+      if (_broken)
+      {
+        return;
+      }
+
+      var push = direction.sqrMagnitude > 0.0001f ? direction.normalized * 6f : Vector3.zero;
+
+      if (!_onlySword || ++_swordHitCount >= _swordHits)
+      {
+        Break(point, push);
+        return;
+      }
+
+      if (_swordHitShake > 0f)
+      {
+        TopDownCamera.AddShake(_swordHitShake);
+      }
+
+      if (_swordHitClip != null && AudioManager.Instance != null)
+      {
+        AudioManager.Instance.playClip(_swordHitClip);
+      }
+
+      if (_swordHitWobble > 0f)
+      {
+        if (_wobbleRoutine != null)
+        {
+          StopCoroutine(_wobbleRoutine);
+          transform.position = _restPosition;
+        }
+
+        _wobbleRoutine = StartCoroutine(Wobble(push.sqrMagnitude > 0f ? push.normalized : transform.forward));
+      }
+    }
+
+    private System.Collections.IEnumerator Wobble(Vector3 direction)
+    {
+      _restPosition = transform.position;
+      const float duration = 0.25f;
+      var t = 0f;
+
+      while (t < duration)
+      {
+        t += Time.deltaTime;
+        var k = 1f - t / duration;
+        var offset = Mathf.Sin(t * 70f) * _swordHitWobble * k;
+        transform.position = _restPosition + direction * offset;
+        yield return null;
+      }
+
+      transform.position = _restPosition;
+      _wobbleRoutine = null;
     }
 
     private void OnCollisionEnter(Collision collision)
     {
-      if (_broken)
+      // Solo con espada: los choques (cajas, objetos lanzados) no lo rompen.
+      if (_broken || _onlySword)
       {
         return;
       }
@@ -127,7 +221,7 @@ namespace NuiGrab
     /// </summary>
     public bool TryDamageEnemy(Collider other, Vector3 point, Vector3 velocity)
     {
-      if (_broken || _enemyDamage <= 0 || other == null || velocity.magnitude < _minDamageSpeed)
+      if (_broken || _onlySword || _enemyDamage <= 0 || other == null || velocity.magnitude < _minDamageSpeed)
       {
         return false;
       }
@@ -382,6 +476,52 @@ namespace NuiGrab
         for (int j = i + 1; j < spawnedColliders.Count; j++)
         {
           Physics.IgnoreCollision(spawnedColliders[i], spawnedColliders[j]);
+        }
+      }
+
+      if (_fragmentsIgnoreCharacters)
+      {
+        IgnoreCharacters(spawnedColliders);
+      }
+    }
+
+    /// <summary>
+    /// Los pedazos atraviesan al jugador y a los enemigos: sus capsulas se
+    /// subian encima de los pedazos y los levantaban.
+    /// </summary>
+    private static void IgnoreCharacters(List<Collider> fragments)
+    {
+      var characters = new List<Collider>();
+
+      var player = FindAnyObjectByType<global::Player>();
+      if (player != null)
+      {
+        AddSolid(player.GetComponentsInChildren<Collider>(true), characters);
+      }
+
+      foreach (var enemy in FindObjectsByType<Enemy>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+      {
+        AddSolid(enemy.GetComponentsInChildren<Collider>(true), characters);
+      }
+
+      foreach (var fragment in fragments)
+      {
+        if (fragment == null) continue;
+
+        foreach (var character in characters)
+        {
+          Physics.IgnoreCollision(fragment, character);
+        }
+      }
+    }
+
+    private static void AddSolid(Collider[] colliders, List<Collider> into)
+    {
+      foreach (var c in colliders)
+      {
+        if (c != null && !c.isTrigger)
+        {
+          into.Add(c);
         }
       }
     }

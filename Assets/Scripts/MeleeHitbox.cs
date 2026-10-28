@@ -58,6 +58,28 @@ public class MeleeHitbox : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        // Objetos que solo se rompen con la espada (puertas...): funcionan en
+        // cualquier capa, sin depender de targetLayer.
+        var swordOnly = other.GetComponentInParent<NuiGrab.Breakable>();
+        if (swordOnly != null && swordOnly.OnlySword)
+        {
+            if (alreadyHit.Add(swordOnly))
+            {
+                var point = other.ClosestPoint(transform.position);
+                var from = owner != null ? owner.position : transform.position;
+                var dir = swordOnly.transform.position - from;
+                dir.y = 0f;
+                swordOnly.HitWithSword(point, dir);
+
+                if (Impact != null && !impactPlayedThisSwing)
+                {
+                    impactPlayedThisSwing = true;
+                    ImpactFeedback.Play(Impact, point, dir);
+                }
+            }
+            return;
+        }
+
         // Verifica si el objeto golpeado esta en la Layer objetivo
         if (((1 << other.gameObject.layer) & targetLayer) == 0)
         {
@@ -69,7 +91,7 @@ public class MeleeHitbox : MonoBehaviour
         {
             if (alreadyHit.Add(breakable))
             {
-                breakable.Break(other.ClosestPoint(transform.position), Vector3.zero);
+                breakable.HitWithSword(other.ClosestPoint(transform.position), Vector3.zero);
             }
             return;
         }

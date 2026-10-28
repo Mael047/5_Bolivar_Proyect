@@ -419,7 +419,7 @@ namespace Menus
 
         if (_tracker == null) status = _textNoTracker;
         else if (!_tracker.IsCameraReady) status = _textStarting;
-        else status = _tracker.IsHandDetected ? _textHand : _textNoHand;
+        else status = _tracker.IsHandDetectedRaw ? _textHand : _textNoHand;
 
         UIText.Set(_cameraStatus, status);
       }
@@ -479,8 +479,8 @@ namespace Menus
       var dt = Time.unscaledDeltaTime;
       // Las posiciones del Canvas ya estan en pixeles de referencia (1080p).
       const float scale = 1f;
-      var detected = _tracker != null && _tracker.isActiveAndEnabled && _tracker.IsHandDetected;
-      var closed = detected && _tracker.IsHandClosed;
+      var detected = _tracker != null && _tracker.isActiveAndEnabled && _tracker.IsHandDetectedRaw;
+      var closed = detected && _tracker.IsHandClosedRaw;
 
       // Mano -> posicion dentro de la vista previa.
       var cursor = Vector2.zero;

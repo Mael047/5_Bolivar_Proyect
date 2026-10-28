@@ -14,11 +14,11 @@ using UnityEngine;
 public enum MapMarkerCategory
 {
   PuntoDeInteres,
-  Cofre,
   Puerta,
   Objetivo,
   Enemigo,
-  Otro
+  Otro,
+  Letrero
 }
 
 [DisallowMultipleComponent]

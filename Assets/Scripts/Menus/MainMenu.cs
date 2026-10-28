@@ -153,6 +153,9 @@ namespace Menus
         return;
       }
 
+      // La mano no actua en el menu: se activa al terminar la entrada al juego.
+      NuiGrab.HandTracker.GameplayEnabled = false;
+
       // En Start: PlayerInput ya activo sus acciones en OnEnable.
       if (_playerInput != null)
       {
@@ -292,6 +295,9 @@ namespace Menus
       {
         _playerInput.ActivateInput();
       }
+
+      // Ya con la camara sobre el jugador: se activan las mecanicas de la mano.
+      NuiGrab.HandTracker.GameplayEnabled = true;
 
       IsOpen = false;
       _starting = false;

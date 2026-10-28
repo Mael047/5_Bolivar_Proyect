@@ -46,10 +46,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 52a45180fd75a294f944fc781091afa9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Collectibles.Collectible
-  _title: Telequinesis
+  _kind: 1
+  _title: Cajas
   _subtitle: 
-  _description: "Para Salir de esta Zona prueba a usar la mano y t\xFA camara, agarra
-    las cajas y encuentra una salida."
+  _description: "Para revisar tu estado, usa Options/Escape. Luego, navega por los
+    men\xFAs con L1/R1 o Q/E,  all\xED podr\xE1s ver Ajustes, Mapa y Estado. "
   _icon: {fileID: 0}
   _equipment: 0
   _inspectModel: {fileID: 0}
@@ -82,13 +83,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1a988bf88855d234080f248c09b2505a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MapMarker
-  _category: 0
+  _category: 6
   _showOnMinimap: 1
   _showOnMap: 1
   _anchor: {fileID: 0}
-  _overrideStyle: 0
+  _overrideStyle: 1
   _icon: {fileID: 0}
-  _color: {r: 1, g: 1, b: 1, a: 1}
+  _color: {r: 0.043704927, g: 1, b: 0, a: 1}
   _size: 22
   _clampToEdge: 0
   _rotateWithTarget: 0
