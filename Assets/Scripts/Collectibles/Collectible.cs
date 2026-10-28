@@ -15,7 +15,7 @@ namespace Collectibles
   }
 
   [DisallowMultipleComponent]
-  public class Collectible : MonoBehaviour
+  public class Collectible : MonoBehaviour, IInteractable
   {
     private const string SaveKeyPrefix = "collectible.";
     private const float MaxHeightDifference = 3f;
@@ -160,6 +160,12 @@ namespace Collectibles
       delta.y = 0f;
       sqrDistance = delta.sqrMagnitude;
       return sqrDistance <= _interactRadius * _interactRadius && height <= MaxHeightDifference;
+    }
+
+    /// <summary>Interactuar = abrir la inspeccion.</summary>
+    public void Interact(UnityEngine.InputSystem.PlayerInput playerInput)
+    {
+      CollectibleInspector.Instance.Open(this, playerInput);
     }
 
     internal void NotifyOpened()

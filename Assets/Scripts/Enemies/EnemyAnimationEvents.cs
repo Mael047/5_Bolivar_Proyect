@@ -24,6 +24,16 @@ public class EnemyAnimationEvents : MonoBehaviour
         if (enemy != null) enemy.Final_Ani();
     }
 
+    /// <summary>
+    /// Evento del clip de ataque de la marimonda: momento exacto del escupitajo.
+    /// (Opcional: RangedAttack dispara por tiempo si el clip no lo tiene.)
+    /// </summary>
+    public void AE_Spit()
+    {
+        var ranged = GetComponentInParent<RangedAttack>();
+        if (ranged != null) ranged.OnSpitEvent();
+    }
+
     public void AE_StartInvincibility()
     {
     }

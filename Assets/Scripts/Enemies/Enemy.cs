@@ -20,12 +20,21 @@ public class Enemy : MonoBehaviour
     [Header("Estadísticas")]
     public int Damage = 10;
 
+    [Tooltip("Ataque cuerpo a cuerpo al llegar al jugador. Apagalo en enemigos con ataque propio (embestida del torito).")]
+    public bool meleeAttack = true;
+
+    /// <summary>
+    /// Mientras es true, otro componente controla al enemigo (por ejemplo la
+    /// embestida del torito) y este no patrulla ni persigue.
+    /// </summary>
+    public bool ExternalControl { get; set; }
+
     private Rigidbody rb;
     private HitReaction hitReaction;
     public bool attack;
 
     /// <summary>True mientras la IA translada en este frame (para la animacion de caminar).</summary>
-    public bool IsMovingNow { get; private set; }
+    public bool IsMovingNow { get; set; }
 
 
     void Start()
@@ -48,6 +57,13 @@ public class Enemy : MonoBehaviour
 
     void Update()
     {
+        // Con control externo (embestida, ataque a distancia...) el otro
+        // componente decide el movimiento y la animacion de caminar.
+        if (ExternalControl)
+        {
+            return;
+        }
+
         IsMovingNow = false;
 
         // Mientras esta aturdido por un golpe no patrulla ni persigue: si no,
@@ -81,7 +97,7 @@ public class Enemy : MonoBehaviour
                 transform.Translate(Vector3.forward * speedDetected * Time.deltaTime);
                 IsMovingNow = true;
             }
-            else
+            else if (meleeAttack)
             {
                 attack = true;
             }

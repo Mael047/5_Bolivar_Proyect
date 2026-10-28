@@ -13,6 +13,8 @@
 // no se reactiva la gravedad. Las piezas bloqueadas o en snap no se pueden agarrar.
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace NuiGrab
@@ -39,6 +41,8 @@ namespace NuiGrab
     private LayerMask _collisionBlockers = ~(1 << 8);
     [SerializeField, Min(0f), Tooltip("Margen entre el objeto y la superficie al frenar.")]
     private float _wallSkin = 0.04f;
+    [SerializeField, Tooltip("El objeto agarrado atraviesa al jugador en vez de empujarlo (evita que salga disparado). Al soltarlo vuelve a chocar cuando ya no se tocan.")]
+    private bool _ignorePlayerWhileHeld = true;
 
     [SerializeField] private Color _hoverColor = new Color(0.35f, 1f, 0.5f);
     [SerializeField] private Color _holdingColor = new Color(1f, 0.95f, 0.3f);
@@ -67,6 +71,8 @@ namespace NuiGrab
     private Vector2 _lastKnownViewport;
 
     private MaterialPropertyBlock _block;
+    private Collider[] _playerColliders;
+    private readonly List<Collider> _ignoredHeldColliders = new List<Collider>();
     private Renderer _glowRenderer;
     private Color _glowBase;
     private Color _glowEmission;
@@ -254,6 +260,14 @@ namespace NuiGrab
         {
           return null;
         }
+
+        // Puertas y demas objetos que solo rompe la espada: no se agarran.
+        var breakable = rb.GetComponent<Breakable>();
+
+        if (breakable != null && breakable.OnlySword)
+        {
+          return null;
+        }
       }
 
       return rb;
@@ -282,6 +296,7 @@ namespace NuiGrab
 
       _held.isKinematic = true;
       _notClosedTimer = 0f;
+      SetPlayerCollision(_held, false);
       PickedUp?.Invoke(_held);
     }
 
@@ -323,7 +338,7 @@ namespace NuiGrab
                   direction,
                   out surfaceHit,
                   remaining,
-                  _collisionBlockers.value,
+                  BlockersMask,
                   QueryTriggerInteraction.Ignore))
           {
             pos = _held.position + direction * Mathf.Max(surfaceHit.distance - _wallSkin, 0f);
@@ -419,6 +434,11 @@ namespace NuiGrab
         held.linearVelocity = throwVelocity;
       }
 
+      if (held != null)
+      {
+        RestorePlayerCollisionWhenClear(held);
+      }
+
       _held = null;
       _isHolding = false;
       _heldVelocity = Vector3.zero;
@@ -431,11 +451,140 @@ namespace NuiGrab
     /// </summary>
     public void ForceRelease()
     {
+      if (_held != null)
+      {
+        RestorePlayerCollisionWhenClear(_held);
+      }
+
       _held = null;
       _isHolding = false;
       _notClosedTimer = 0f;
       _heldVelocity = Vector3.zero;
       ClearGlow();
+    }
+
+    // ---------- Colision con el jugador ----------
+    // Un cuerpo kinematico movido con MovePosition empuja con fuerza infinita:
+    // si el objeto agarrado se mete en el jugador, la fisica lo expulsa a toda
+    // velocidad. Mientras se sostiene, objeto y jugador se ignoran.
+
+    private int BlockersMask
+    {
+      get
+      {
+        var mask = _collisionBlockers.value;
+
+        if (_ignorePlayerWhileHeld && _player != null)
+        {
+          mask &= ~(1 << _player.gameObject.layer);
+        }
+
+        return mask;
+      }
+    }
+
+    private Collider[] PlayerColliders()
+    {
+      if (_playerColliders == null && _player != null)
+      {
+        _playerColliders = _player.GetComponentsInChildren<Collider>(true);
+      }
+
+      return _playerColliders;
+    }
+
+    private void SetPlayerCollision(Rigidbody body, bool collide)
+    {
+      if (!_ignorePlayerWhileHeld || body == null)
+      {
+        return;
+      }
+
+      var playerColliders = PlayerColliders();
+
+      if (playerColliders == null)
+      {
+        return;
+      }
+
+      _ignoredHeldColliders.Clear();
+      body.GetComponentsInChildren(true, _ignoredHeldColliders);
+
+      foreach (var held in _ignoredHeldColliders)
+      {
+        if (held == null || held.isTrigger) continue;
+
+        foreach (var pc in playerColliders)
+        {
+          if (pc != null && !pc.isTrigger)
+          {
+            Physics.IgnoreCollision(held, pc, !collide);
+          }
+        }
+      }
+    }
+
+    private void RestorePlayerCollisionWhenClear(Rigidbody body)
+    {
+      if (_ignorePlayerWhileHeld && isActiveAndEnabled)
+      {
+        StartCoroutine(RestoreWhenClear(body));
+      }
+    }
+
+    /// <summary>Vuelve a activar el choque con el jugador cuando ya no se tocan (si no, lo expulsaria).</summary>
+    private IEnumerator RestoreWhenClear(Rigidbody body)
+    {
+      var wait = new WaitForFixedUpdate();
+
+      // Se espera un paso: al llamarse, el agarre aun no se ha marcado como suelto.
+      yield return wait;
+
+      while (body != null)
+      {
+        // Lo volvieron a agarrar: sigue ignorando.
+        if (_isHolding && _held == body)
+        {
+          yield break;
+        }
+
+        if (!Overlaps(body))
+        {
+          SetPlayerCollision(body, true);
+          yield break;
+        }
+
+        yield return wait;
+      }
+    }
+
+    private bool Overlaps(Rigidbody body)
+    {
+      var playerColliders = PlayerColliders();
+
+      if (playerColliders == null)
+      {
+        return false;
+      }
+
+      foreach (var held in body.GetComponentsInChildren<Collider>())
+      {
+        if (held.isTrigger) continue;
+
+        foreach (var pc in playerColliders)
+        {
+          if (pc == null || pc.isTrigger || !pc.enabled) continue;
+
+          if (held.bounds.Intersects(pc.bounds) &&
+              Physics.ComputePenetration(held, held.transform.position, held.transform.rotation,
+                pc, pc.transform.position, pc.transform.rotation, out _, out _))
+          {
+            return true;
+          }
+        }
+      }
+
+      return false;
     }
 
     private bool TryInterceptDrop(Rigidbody body)

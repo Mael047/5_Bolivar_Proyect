@@ -42,6 +42,21 @@ public class ContactDamage : MonoBehaviour
   // Proximo momento en que cada jugador puede volver a recibir daño por contacto.
   private static readonly Dictionary<Health, float> s_nextHit = new Dictionary<Health, float>();
 
+  /// <summary>True si el jugador sigue invulnerable tras un golpe reciente.</summary>
+  public static bool IsInvulnerable(Health player)
+  {
+    return player != null && s_nextHit.TryGetValue(player, out var next) && Time.time < next;
+  }
+
+  /// <summary>Hace invulnerable al jugador unos segundos (compartido con otros ataques).</summary>
+  public static void SetInvulnerable(Health player, float seconds)
+  {
+    if (player != null)
+    {
+      s_nextHit[player] = Time.time + seconds;
+    }
+  }
+
   private Enemy _enemy;
   private Health _ownHealth;
   private HitReaction _hitReaction;

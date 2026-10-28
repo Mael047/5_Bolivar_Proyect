@@ -9,6 +9,9 @@
 //
 // La F del teclado tambien es Atacar: Player consulta ShouldBlockAttack()
 // para no atacar cuando esa pulsacion sirve para examinar un objeto.
+//
+// Ademas de coleccionables, maneja cualquier IInteractable registrado
+// (puertas con llave...) con el mismo aviso y el mismo boton.
 
 using System.Collections.Generic;
 using UnityEngine;
@@ -39,20 +42,24 @@ namespace Collectibles
     private InputAction _interactAction;
     private bool _ownsAction;
 
-    private Collectible _current;
+    private IInteractable _current;
     private Camera _camera;
     private float _blockedUntil;
 
     private readonly Dictionary<CollectiblePromptView, CollectiblePromptView> _instances =
       new Dictionary<CollectiblePromptView, CollectiblePromptView>();
     private CollectiblePromptView _shownView;
-    private Collectible _shownTarget;
+    private IInteractable _shownTarget;
+    private string _shownText;
     private bool _missingWarned;
 
     public static CollectibleInteractor Instance => s_instance;
 
     /// <summary>Coleccionable al alcance ahora mismo (null si ninguno).</summary>
-    public Collectible Current => _current;
+    public Collectible Current => _current as Collectible;
+
+    /// <summary>Interactuable al alcance ahora mismo (coleccionable, puerta...).</summary>
+    public IInteractable CurrentInteractable => _current;
 
     public static void EnsureExists()
     {
@@ -190,7 +197,7 @@ namespace Collectibles
       _interactAction.performed += OnInteract;
     }
 
-    private Collectible FindBest()
+    private IInteractable FindBest()
     {
       if (Menus.MainMenu.IsOpen || Menus.PauseMenu.IsOpen || _player == null || !_player.isActiveAndEnabled || _player.IsBusy)
       {
@@ -198,7 +205,7 @@ namespace Collectibles
       }
 
       var position = _player.transform.position;
-      Collectible best = null;
+      IInteractable best = null;
       var bestSqr = float.MaxValue;
       var list = Collectible.Active;
 
@@ -209,6 +216,24 @@ namespace Collectibles
         if (c != null && c.CanInteract && c.IsInRange(position, out var sqr) && sqr < bestSqr)
         {
           best = c;
+          bestSqr = sqr;
+        }
+      }
+
+      var others = InteractableRegistry.Active;
+
+      for (var i = 0; i < others.Count; i++)
+      {
+        var o = others[i];
+
+        if (o is Object unityObject && unityObject == null)
+        {
+          continue;
+        }
+
+        if (o != null && o.CanInteract && o.IsInRange(position, out var sqr) && sqr < bestSqr)
+        {
+          best = o;
           bestSqr = sqr;
         }
       }
@@ -234,12 +259,12 @@ namespace Collectibles
       _current = null;
       HidePromptNow();
 
-      CollectibleInspector.Instance.Open(target, _playerInput);
+      target.Interact(_playerInput);
     }
 
     // ---------- Aviso ----------
 
-    private CollectiblePromptView ResolveView(Collectible target)
+    private CollectiblePromptView ResolveView(IInteractable target)
     {
       var source = target.CustomPromptView != null ? target.CustomPromptView : _promptView;
 
@@ -301,7 +326,16 @@ namespace Collectibles
             view.gameObject.SetActive(true);
           }
 
-          view.SetAction(_current.PromptText);
+          _shownText = null;
+        }
+
+        // El texto puede cambiar sin cambiar de objetivo (ej. puerta con o sin llave).
+        var text = _current.PromptText;
+
+        if (text != _shownText)
+        {
+          _shownText = text;
+          view.SetAction(text);
         }
 
         visible = view.Place(_camera.WorldToScreenPoint(_current.PromptPoint));
@@ -332,6 +366,7 @@ namespace Collectibles
 
       _shownView = null;
       _shownTarget = null;
+      _shownText = null;
     }
 
     internal static void HideIfSceneObject(Component view)

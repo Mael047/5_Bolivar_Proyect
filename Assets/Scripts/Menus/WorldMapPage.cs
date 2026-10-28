@@ -67,11 +67,10 @@ namespace Menus
     [SerializeField] private CategoryStyle[] _categoryStyles =
     {
       new CategoryStyle { category = MapMarkerCategory.PuntoDeInteres, label = "Puntos de interés", color = new Color(0.95f, 0.75f, 0.2f) },
-      new CategoryStyle { category = MapMarkerCategory.Cofre, label = "Cofres", color = new Color(0.8f, 0.5f, 0.2f) },
       new CategoryStyle { category = MapMarkerCategory.Puerta, label = "Puertas", color = new Color(0.3f, 0.55f, 0.85f) },
       new CategoryStyle { category = MapMarkerCategory.Objetivo, label = "Objetivos", color = new Color(0.85f, 0.2f, 0.2f), size = 34f },
       new CategoryStyle { category = MapMarkerCategory.Enemigo, label = "Enemigos", color = new Color(0.6f, 0.1f, 0.15f), size = 18f, showInLegend = false },
-      new CategoryStyle { category = MapMarkerCategory.Otro, label = "Otros", color = Color.white, showInLegend = false },
+
     };
 
     [Header("Zoom y movimiento")]

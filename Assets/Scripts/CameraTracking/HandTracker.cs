@@ -54,8 +54,24 @@ namespace NuiGrab
     private volatile float _openness;
     private float _nextLogTime;
 
-    public bool IsHandDetected => _handDetected;
-    public bool IsHandClosed => _handDetected && _openness < _closeThreshold;
+    /// <summary>
+    /// Mecanicas de la mano en el juego (telequinesis, mirar, agarrar...).
+    /// El menu principal lo apaga y lo enciende al terminar el movimiento de
+    /// camara hacia el jugador. El tracking sigue funcionando (la pantalla de
+    /// configuracion de camara usa los valores "Raw").
+    /// </summary>
+    public static bool GameplayEnabled { get; set; } = true;
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetStatics() => GameplayEnabled = true;
+
+    /// <summary>Mano detectada y mecanicas de juego activas.</summary>
+    public bool IsHandDetected => _handDetected && GameplayEnabled;
+    public bool IsHandClosed => IsHandDetected && _openness < _closeThreshold;
+
+    /// <summary>Deteccion real, ignorando si las mecanicas estan activas (menus, calibracion).</summary>
+    public bool IsHandDetectedRaw => _handDetected;
+    public bool IsHandClosedRaw => _handDetected && _openness < _closeThreshold;
     public float Openness => _openness;
 
     public bool MirrorX => _mirrorX;

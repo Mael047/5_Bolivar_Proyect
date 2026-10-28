@@ -119,11 +119,9 @@ public class Minimap : MonoBehaviour
   [SerializeField] private CategoryStyle[] _categoryStyles =
   {
     new CategoryStyle { category = MapMarkerCategory.PuntoDeInteres, color = new Color(1f, 0.85f, 0.3f), size = 22f },
-    new CategoryStyle { category = MapMarkerCategory.Cofre, color = new Color(0.95f, 0.65f, 0.25f), size = 22f },
     new CategoryStyle { category = MapMarkerCategory.Puerta, color = new Color(0.55f, 0.85f, 1f), size = 20f },
     new CategoryStyle { category = MapMarkerCategory.Objetivo, color = new Color(1f, 0.35f, 0.3f), size = 28f, clampToEdge = true },
     new CategoryStyle { category = MapMarkerCategory.Enemigo, color = new Color(0.9f, 0.2f, 0.25f), size = 14f },
-    new CategoryStyle { category = MapMarkerCategory.Otro, color = Color.white, size = 18f },
   };
   [SerializeField, Tooltip("Marca automaticamente a todos los enemigos.")]
   private bool _autoMarkEnemies = true;
