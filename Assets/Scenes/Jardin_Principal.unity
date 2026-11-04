@@ -5556,8 +5556,12 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1120190609}
     - target: {fileID: 2810384411348062905, guid: efdf80cfdb5d5504399d67ba05923987, type: 3}
+      propertyPath: _cameraSetup
+      value: 
+      objectReference: {fileID: 1600862761}
+    - target: {fileID: 2810384411348062905, guid: efdf80cfdb5d5504399d67ba05923987, type: 3}
       propertyPath: _showOnStart
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2810384411348062905, guid: efdf80cfdb5d5504399d67ba05923987, type: 3}
       propertyPath: _menuCameraPoint
@@ -11899,6 +11903,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1325221803808593841, guid: 33a1f63f3c3b35d4686fb65fa2c48164, type: 3}
+      propertyPath: _animator
+      value: 
+      objectReference: {fileID: 688445693}
     - target: {fileID: 1337111086372985227, guid: 33a1f63f3c3b35d4686fb65fa2c48164, type: 3}
       propertyPath: m_LocalPosition.x
       value: -75.219
@@ -16461,6 +16469,11 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 687736314}
   m_Mesh: {fileID: -349836869378595677, guid: 6078fe17c2491634e907e5282ce9f98a, type: 3}
+--- !u!95 &688445693 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 8944984437823040244, guid: 33a1f63f3c3b35d4686fb65fa2c48164, type: 3}
+  m_PrefabInstance: {fileID: 510677093}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &692088054
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -37592,6 +37605,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 5079146721342221772, guid: 93a136724de287a4699c3165b270300c, type: 3}
   m_PrefabInstance: {fileID: 433220702}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1600862761 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1432535198831535522, guid: 93a136724de287a4699c3165b270300c, type: 3}
+  m_PrefabInstance: {fileID: 433220702}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c1cb511895982f3448a86fa829c2947b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Menus.CameraSetup
 --- !u!1001 &1606559278
 PrefabInstance:
   m_ObjectHideFlags: 0

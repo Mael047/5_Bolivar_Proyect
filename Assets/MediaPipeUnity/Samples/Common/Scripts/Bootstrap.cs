@@ -55,9 +55,11 @@ namespace Mediapipe.Unity.Sample
             AssetLoader.Provide(new LocalResourceManager());
             break;
 #else
-            Debug.LogError("LocalResourceManager is only supported on UnityEditor." +
-              "To avoid this error, consider switching to the StreamingAssetsResourceManager and copying the required resources under StreamingAssets, for example.");
-            yield break;
+            // En la build no existe la carpeta del paquete: se usan los modelos
+            // copiados a StreamingAssets (los copia MediaPipeBuildSetup al buildear).
+            Debug.Log("AssetLoader Local solo funciona en el editor: usando StreamingAssets en la build.");
+            AssetLoader.Provide(new StreamingAssetsResourceManager());
+            break;
 #endif
           }
         default:

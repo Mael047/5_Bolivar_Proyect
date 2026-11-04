@@ -15,7 +15,7 @@ MonoBehaviour:
   baseMap: {fileID: 2800000, guid: 2a1d6fe5a86056d4e96fa4202dc7c926, type: 3}
   worldMin: {x: -112.2, y: -27.5}
   worldSize: {x: 250.4, y: 170.2}
-  bakedAt: 2026-10-25 20:24
+  bakedAt: 2026-11-03 19:27
   overlay: {fileID: 0}
   resolution: 2048
   renderLayers:
@@ -45,6 +45,6 @@ MonoBehaviour:
   contourInterval: 2
   contourStrength: 0.25
   heightMin: 0
-  heightMax: 3.7537155
+  heightMax: 4.2211676
   heightWidth: 1024
   heightHeight: 696
