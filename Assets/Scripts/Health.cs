@@ -18,6 +18,9 @@ public class Health : MonoBehaviour, IDamageable
     public int MaxHealth => maxHealth;
     public bool IsDead => currentHealth <= 0;
 
+    /// <summary>Si es false, al morir solo avisa (Died) y no se destruye. La nutria usa false (reaparece).</summary>
+    public bool DestroyOnDeath { get; set; } = true;
+
     private void Awake()
     {
         currentHealth = maxHealth;
@@ -57,10 +60,27 @@ public class Health : MonoBehaviour, IDamageable
         }
     }
 
+    /// <summary>Pone la vida a un valor (guardado / reaparecer). Tambien revive.</summary>
+    public void SetHealth(int value)
+    {
+        var before = currentHealth;
+        currentHealth = Mathf.Clamp(value, 0, maxHealth);
+
+        if (currentHealth != before)
+        {
+            Changed?.Invoke(currentHealth, maxHealth, currentHealth - before);
+        }
+    }
+
     private void Die()
     {
         Debug.Log($"{gameObject.name} ha sido derrotado.");
         Died?.Invoke();
+
+        if (!DestroyOnDeath)
+        {
+            return;
+        }
 
         if (destroyDelay > 0f)
         {

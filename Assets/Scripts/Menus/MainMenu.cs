@@ -124,8 +124,14 @@ namespace Menus
         _newGameButton.onClick.AddListener(StartNewGame);
       }
 
+      // Cargar partida: solo si hay una guardada (se guarda al descansar en un banco).
+      if (_loadGameButton != null)
+      {
+        _loadGameButton.interactable = GameState.HasSave;
+        _loadGameButton.onClick.AddListener(LoadGame);
+      }
+
       // Pendientes: dejan constancia en consola hasta que se implementen.
-      AddPending(_loadGameButton, "Cargar partida");
       AddPending(_settingsButton, "Ajustes");
       AddPending(_creditsButton, "Creditos");
       AddPending(_quitButton, "Salir del juego");
@@ -134,6 +140,19 @@ namespace Menus
       {
         SetFade(0f);
         _fadeImage.raycastTarget = false;
+      }
+
+      // Llegando con una partida en curso (cargar partida, reaparecer, cruzar
+      // una puerta): no se abre el menu.
+      if (GameState.Pending)
+      {
+        _showOnStart = false;
+        IsOpen = false;
+      }
+      else if (_showOnStart)
+      {
+        // Menu de verdad (inicio del juego o Salir al menu): partida limpia.
+        GameState.ResetSession();
       }
 
       if (_showOnStart)
@@ -214,6 +233,30 @@ namespace Menus
       _camera.transform.SetPositionAndRotation(position, rotation);
     }
 
+    // ---------- Cargar partida ----------
+
+    public void LoadGame()
+    {
+      if (_starting)
+      {
+        return;
+      }
+
+      var scene = GameState.LoadFromDisk();
+
+      if (string.IsNullOrEmpty(scene))
+      {
+        Debug.LogWarning("[MainMenu] No hay partida guardada.");
+        return;
+      }
+
+      _starting = true;
+      _group.interactable = false;
+      _group.blocksRaycasts = false;
+      IsOpen = false;
+      SceneDoor.LoadSceneWithFade(scene, 0.6f, Color.black);
+    }
+
     // ---------- Nueva partida ----------
 
     public void StartNewGame()
@@ -222,6 +265,8 @@ namespace Menus
       {
         return;
       }
+
+      GameState.ResetSession();
 
       StartCoroutine(StartGameRoutine());
     }

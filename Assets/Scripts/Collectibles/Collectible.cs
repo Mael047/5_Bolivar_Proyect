@@ -227,6 +227,20 @@ namespace Collectibles
       }
     }
 
+    /// <summary>
+    /// Partida guardada: ya se recogio antes. Queda como recogido y se oculta
+    /// (si se oculta al examinarlo), sin volver a equiparlo ni avisar.
+    /// </summary>
+    public void HideAsCollected()
+    {
+      IsCollected = true;
+
+      if (_hideAfterInspect)
+      {
+        gameObject.SetActive(false);
+      }
+    }
+
     [ContextMenu("Borrar progreso guardado de este coleccionable")]
     private void ClearSavedProgress()
     {

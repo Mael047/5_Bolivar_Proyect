@@ -221,6 +221,57 @@ public class PuzzleManager : MonoBehaviour
         Completed?.Invoke(this);
     }
 
+    /// <summary>
+    /// Partida guardada: el puzzle ya estaba resuelto. Coloca cada pieza en su
+    /// hueco y lo bloquea, sin recompensa ni eventos.
+    /// </summary>
+    public void SolveFromSave()
+    {
+        if (IsComplete)
+        {
+            return;
+        }
+
+        var free = new List<PuzzlePiece>(FindObjectsByType<PuzzlePiece>(FindObjectsInactive.Exclude, FindObjectsSortMode.None));
+
+        foreach (var slot in _slots)
+        {
+            if (slot == null)
+            {
+                continue;
+            }
+
+            var piece = free.Find(p => p != null && p.PieceId == slot.AcceptedPieceId && p.gameObject.scene == gameObject.scene);
+
+            if (piece == null)
+            {
+                continue;
+            }
+
+            free.Remove(piece);
+            var body = piece.Body;
+
+            if (body != null)
+            {
+                if (!body.isKinematic)
+                {
+                    body.linearVelocity = Vector3.zero;
+                    body.angularVelocity = Vector3.zero;
+                }
+
+                body.isKinematic = true;
+                body.position = slot.transform.position;
+                body.rotation = slot.transform.rotation;
+            }
+
+            piece.transform.SetPositionAndRotation(slot.transform.position, slot.transform.rotation);
+            slot.Fill(piece);
+            piece.Lock();
+        }
+
+        IsComplete = true;
+    }
+
     private void SpawnReward()
     {
         if (_rewardPrefab == null)

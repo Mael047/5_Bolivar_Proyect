@@ -188,6 +188,45 @@ public class LockedDoor : MonoBehaviour, IInteractable
     }
   }
 
+  /// <summary>Partida guardada: la deja ya abierta, sin animacion ni sonido.</summary>
+  public void OpenImmediate()
+  {
+    if (IsOpen)
+    {
+      return;
+    }
+
+    if (_door == null) _door = transform;
+
+    switch (_openMode)
+    {
+      case OpenMode.Deslizar:
+        _door.localPosition += _slideOffset;
+        break;
+      case OpenMode.Girar:
+        _door.localRotation *= Quaternion.Euler(0f, _hingeAngle, 0f);
+        break;
+      case OpenMode.Desaparecer:
+        _door.localScale = Vector3.zero;
+        break;
+    }
+
+    if (_disableCollidersWhenOpen || _openMode == OpenMode.Desaparecer)
+    {
+      foreach (var c in _door.GetComponentsInChildren<Collider>()) c.enabled = false;
+    }
+
+    if (_openMode == OpenMode.Desaparecer)
+    {
+      foreach (var r in _door.GetComponentsInChildren<Renderer>()) r.enabled = false;
+    }
+
+    if (_lockVisual != null) _lockVisual.SetActive(false);
+    if (TryGetComponent<MapMarker>(out var marker)) marker.SetVisible(false, false);
+
+    IsOpen = true;
+  }
+
   /// <summary>Abre la puerta sin llave (palancas, eventos, cinematicas...).</summary>
   public void ForceOpen()
   {
