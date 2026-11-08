@@ -256,7 +256,7 @@ namespace NuiGrab
       {
         var piece = rb.GetComponent<PuzzlePiece>();
 
-        if (piece != null && (piece.IsLocked || piece.IsSnapping))
+        if (piece != null && (piece.IsLocked || piece.IsSnapping || !piece.GrabEnabled))
         {
           return null;
         }

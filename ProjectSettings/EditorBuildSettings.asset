@@ -8,4 +8,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Jardin_Principal.unity
     guid: a76e28f48dd368c459370c538c2138b3
+  - enabled: 1
+    path: Assets/Scenes/Nivel_CASA.unity
+    guid: 1a260e9e0f7cc0843a74a774215d31e0
   m_configObjects: {}

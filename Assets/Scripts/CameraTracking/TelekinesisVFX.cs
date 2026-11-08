@@ -103,6 +103,22 @@ namespace NuiGrab
     private Transform _autoOrigin;
     private bool _autoOriginIsHand;
 
+    /// <summary>
+    /// Tamaño de los efectos (1 = normal). Las vistas cercanas (mesa de
+    /// billar) lo bajan para que el cursor no tape lo que se agarra.
+    /// </summary>
+    public static float EffectScale { get; set; } = 1f;
+
+    /// <summary>Oculta el lazo que va del personaje al objeto (vistas cercanas).</summary>
+    public static bool HideTether { get; set; }
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetStatics()
+    {
+      EffectScale = 1f;
+      HideTether = false;
+    }
+
     private const int ArcCount = 3;
     private const int ArcPoints = 16;
     private const int TetherPoints = 28;
@@ -369,6 +385,52 @@ namespace NuiGrab
       SetEmission(_motes, _visible > 0.5f && !holding, _motesRate);
     }
 
+    private readonly System.Collections.Generic.Dictionary<ParticleSystem, ParticleSystem.MinMaxCurve> _baseSizes =
+      new System.Collections.Generic.Dictionary<ParticleSystem, ParticleSystem.MinMaxCurve>();
+    private float _appliedScale = 1f;
+
+    private void ApplyParticleScale()
+    {
+      if (Mathf.Approximately(_appliedScale, EffectScale))
+      {
+        return;
+      }
+
+      _appliedScale = EffectScale;
+      ScaleSize(_motes);
+      ScaleSize(_aura);
+      ScaleSize(_burst);
+    }
+
+    private void ScaleSize(ParticleSystem ps)
+    {
+      if (ps == null) return;
+
+      if (!_baseSizes.TryGetValue(ps, out var baseSize))
+      {
+        baseSize = ps.main.startSize;
+        _baseSizes[ps] = baseSize;
+      }
+
+      var s = _appliedScale;
+      var main = ps.main;
+
+      switch (baseSize.mode)
+      {
+        case ParticleSystemCurveMode.Constant:
+          main.startSize = new ParticleSystem.MinMaxCurve(baseSize.constant * s);
+          break;
+        case ParticleSystemCurveMode.TwoConstants:
+          main.startSize = new ParticleSystem.MinMaxCurve(baseSize.constantMin * s, baseSize.constantMax * s);
+          break;
+        default:
+          var scaled = baseSize;
+          scaled.curveMultiplier = baseSize.curveMultiplier * s;
+          main.startSize = scaled;
+          break;
+      }
+    }
+
     private void UpdateCore(float dt, bool closed, bool holding)
     {
       var camRot = _camera.transform.rotation;
@@ -377,15 +439,26 @@ namespace NuiGrab
 
       _core.transform.rotation = camRot;
       _halo.transform.rotation = camRot * Quaternion.Euler(0f, 0f, Time.time * 40f);
-      _core.transform.localScale = Vector3.one * (_coreSize * pulse * squeeze * _visible);
-      _halo.transform.localScale = Vector3.one * (_haloSize * (2f - pulse) * squeeze * _visible);
+      var s = EffectScale;
+      _core.transform.localScale = Vector3.one * (_coreSize * pulse * squeeze * _visible * s);
+      _halo.transform.localScale = Vector3.one * (_haloSize * (2f - pulse) * squeeze * _visible * s);
 
       SetColor(_core, Color.Lerp(_color, Color.white, 0.55f), _visible);
       SetColor(_halo, _color, 0.55f * _visible);
 
       _light.color = _color;
       _light.intensity = _lightIntensity * _visible * (holding ? 1.3f : 1f);
-      _light.range = _lightRange;
+      _light.range = _lightRange * EffectScale;
+
+      // Tamaño de las particulas y del anillo segun la escala de efectos.
+      ApplyParticleScale();
+
+      for (var i = 0; i < ArcCount; i++)
+      {
+        _arcs[i].widthMultiplier = _ringWidth * EffectScale;
+      }
+
+      _innerRing.widthMultiplier = _ringWidth * 0.4f * EffectScale;
     }
 
     private void UpdateRing(float dt, bool closed, bool holding, Rigidbody hovered)
@@ -414,7 +487,7 @@ namespace NuiGrab
       else
       {
         center = _cursorPos - Vector3.up * (_cursorHeight - 0.03f);
-        radius = closed ? _ringRadiusClosed : _ringRadiusOpen;
+        radius = (closed ? _ringRadiusClosed : _ringRadiusOpen) * EffectScale;
       }
 
       var k = 1f - Mathf.Exp(-14f * dt);
@@ -456,7 +529,7 @@ namespace NuiGrab
 
     private void UpdateTether(bool holding)
     {
-      var show = _tether && holding;
+      var show = _tether && holding && !HideTether;
       _tetherLine.enabled = show;
 
       if (!show)
@@ -483,7 +556,7 @@ namespace NuiGrab
         _tetherLine.SetPosition(i, p + side * wave + Vector3.up * wave2);
       }
 
-      _tetherLine.widthMultiplier = _tetherWidth * (0.9f + Mathf.Sin(Time.time * 18f) * 0.1f);
+      _tetherLine.widthMultiplier = _tetherWidth * EffectScale * (0.9f + Mathf.Sin(Time.time * 18f) * 0.1f);
       _tetherMat.mainTextureOffset = new Vector2(-Time.time * _tetherScroll, 0f);
       _tetherMat.SetTextureOffset("_BaseMap", _tetherMat.mainTextureOffset);
       _tetherMat.mainTextureScale = new Vector2(Mathf.Max(1f, Vector3.Distance(from, to) * 1.5f), 1f);
