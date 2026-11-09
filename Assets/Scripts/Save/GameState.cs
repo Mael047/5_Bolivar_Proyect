@@ -188,12 +188,51 @@ public static class GameState
   // ---------- Transiciones ----------
 
   /// <summary>Antes de cruzar una puerta a otra escena.</summary>
-  public static void PrepareSceneChange()
+  public static void PrepareSceneChange(string arrivalPoint = null)
   {
     CapturePlayer();
+    CaptureCarried();
     Pending = true;
     PendingSpawn = Spawn.DondeEste;
     PendingFullHealth = false;
+    PendingArrival = arrivalPoint;
+  }
+
+  /// <summary>Objeto donde aparece la nutria al cruzar una puerta (vacio = donde la ponga la escena).</summary>
+  public static string PendingArrival { get; private set; }
+
+  private static GameObject s_carried;
+
+  /// <summary>
+  /// Lo que la nutria lleva agarrado con la mano pasa con ella a la otra
+  /// escena (se suelta, sobrevive a la carga y se vuelve a agarrar al llegar).
+  /// </summary>
+  private static void CaptureCarried()
+  {
+    s_carried = null;
+    var grab = UnityEngine.Object.FindAnyObjectByType<NuiGrab.HandGrabManager>();
+
+    if (grab == null || grab.Held == null)
+    {
+      return;
+    }
+
+    var body = grab.Held;
+    grab.ForceRelease();
+    body.isKinematic = true;
+
+    var go = body.gameObject;
+    go.transform.SetParent(null, true);
+    UnityEngine.Object.DontDestroyOnLoad(go);
+    s_carried = go;
+  }
+
+  /// <summary>Lo usa WorldState: devuelve (y olvida) el objeto que venia agarrado.</summary>
+  internal static GameObject TakeCarried()
+  {
+    var go = s_carried;
+    s_carried = null;
+    return go;
   }
 
   /// <summary>
@@ -338,6 +377,7 @@ public static class GameState
     var health = s_pendingHealth;
     Pending = false;
     s_pendingHealth = -1;
+    PendingArrival = null;
     return health;
   }
 }

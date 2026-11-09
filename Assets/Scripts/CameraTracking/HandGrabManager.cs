@@ -256,7 +256,7 @@ namespace NuiGrab
       {
         var piece = rb.GetComponent<PuzzlePiece>();
 
-        if (piece != null && (piece.IsLocked || piece.IsSnapping || !piece.GrabEnabled))
+        if (piece != null && (piece.IsLocked || piece.IsSnapping))
         {
           return null;
         }
@@ -443,6 +443,26 @@ namespace NuiGrab
       _isHolding = false;
       _heldVelocity = Vector3.zero;
       ClearGlow();
+    }
+
+    /// <summary>
+    /// Agarra un objeto directamente (sin pasar por la mano): lo usa el cambio
+    /// de escena para que la nutria siga llevando lo que tenia. Si la mano no
+    /// esta cerrada, se suelta solo en el siguiente frame.
+    /// </summary>
+    public void ForceGrab(Rigidbody target)
+    {
+      if (target == null)
+      {
+        return;
+      }
+
+      if (_isHolding)
+      {
+        ForceRelease();
+      }
+
+      Grab(target);
     }
 
     /// <summary>

@@ -18,10 +18,12 @@ public class SceneDoor : MonoBehaviour
 {
   [SerializeField, Tooltip("Nombre exacto de la escena a cargar.")]
   private string _sceneName = "Nivel_CASA";
+  [SerializeField, Tooltip("Nombre del objeto de la otra escena donde aparece la nutria (vacio = donde la ponga esa escena).")]
+  private string _arrivalPoint = "";
   [SerializeField, Min(0f), Tooltip("Segundos del fundido a negro (y de vuelta en la escena nueva).")]
   private float _fadeTime = 0.6f;
   [SerializeField] private Color _fadeColor = Color.black;
-  [SerializeField, Min(0f), Tooltip("Al empezar la escena, segundos en los que la puerta no hace nada (por si la nutria aparece dentro).")]
+  [SerializeField, Min(0f), Tooltip("Al empezar la escena, segundos en los que la puerta no hace nada. Si la nutria aparece dentro, tiene que salir y volver a entrar.")]
   private float _armDelay = 1f;
   [SerializeField] private AudioClip _enterSound;
   [SerializeField, Range(0f, 1f)] private float _volume = 0.9f;
@@ -48,7 +50,6 @@ public class SceneDoor : MonoBehaviour
 
   private void OnTriggerEnter(Collider other) => TryEnter(other);
 
-  private void OnTriggerStay(Collider other) => TryEnter(other);
 
   private void TryEnter(Collider other)
   {
@@ -73,7 +74,7 @@ public class SceneDoor : MonoBehaviour
     s_loading = true;
 
     // Lo que lleva la nutria pasa a la escena nueva.
-    GameState.PrepareSceneChange();
+    GameState.PrepareSceneChange(_arrivalPoint);
 
     // La nutria deja de responder mientras se funde.
     var input = player.GetComponent<PlayerInput>();

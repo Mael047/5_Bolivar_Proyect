@@ -188,6 +188,7 @@ public class WorldState : MonoBehaviour
 
   private void ApplyPlayer()
   {
+    var arrival = GameState.PendingArrival;
     var health = GameState.ConsumePending(out var spawn, out var fullHealth);
     var player = FindAnyObjectByType<Player>();
 
@@ -232,6 +233,42 @@ public class WorldState : MonoBehaviour
           PlacePlayer(player, bench.SpawnPose);
           break;
         }
+      }
+    }
+
+    // Posicion: punto de llegada de la puerta (p. ej. la entrada de la casa)
+    if (spawn == GameState.Spawn.DondeEste && !string.IsNullOrEmpty(arrival))
+    {
+      var point = FindAll<Transform>(gameObject.scene).Find(t => t.name == arrival);
+
+      if (point != null)
+      {
+        PlacePlayer(player, new Pose(point.position, Quaternion.Euler(0f, point.eulerAngles.y, 0f)));
+      }
+      else
+      {
+        Debug.LogWarning($"[WorldState] No encontre el punto de llegada '{arrival}' en esta escena.");
+      }
+    }
+
+    // Lo que traia agarrado aparece delante de ella y se vuelve a agarrar.
+    var carried = GameState.TakeCarried();
+
+    if (carried != null)
+    {
+      SceneManager.MoveGameObjectToScene(carried, gameObject.scene);
+      var front = player.transform.position + player.transform.forward * 1f + Vector3.up * 1f;
+      carried.transform.position = front;
+
+      var body = carried.GetComponent<Rigidbody>();
+      var grab = FindAnyObjectByType<HandGrabManager>();
+
+      if (body != null)
+      {
+        body.position = front;
+
+        if (grab != null) grab.ForceGrab(body);
+        else body.isKinematic = false;
       }
     }
 

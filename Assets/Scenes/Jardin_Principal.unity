@@ -34833,6 +34833,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SceneDoor
   _sceneName: Nivel_CASA
+  _arrivalPoint: PuntoDeInicio
   _fadeTime: 0.6
   _fadeColor: {r: 0, g: 0, b: 0, a: 1}
   _armDelay: 1
@@ -46669,6 +46670,37 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: -8435670382758905061, guid: 940b4cb8605ab468da533a5d2f51bd2e, type: 3}
+--- !u!1 &1790968199
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1790968200}
+  m_Layer: 0
+  m_Name: Llegada_DesdeCasa
+  m_TagString: Untagged
+  m_Icon: {fileID: 3306451490063965843, guid: 0000000000000000d000000000000000, type: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1790968200
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1790968199}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0.9999992, z: 0, w: -0.0012566975}
+  m_LocalPosition: {x: 76.370346, y: 0.6967372, z: 38.1683}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1792095759
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -55234,3 +55266,4 @@ SceneRoots:
   - {fileID: 911924393}
   - {fileID: 912839900}
   - {fileID: 1368942686}
+  - {fileID: 1790968200}
