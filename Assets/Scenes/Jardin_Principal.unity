@@ -26319,6 +26319,66 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b53e5ea5ca075fd44833c424118115d7, type: 3}
+--- !u!1001 &1051724177
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: c88b7624805db4ff79e9910c7b619d0d, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -75.59431
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c88b7624805db4ff79e9910c7b619d0d, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0.0000015966798
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c88b7624805db4ff79e9910c7b619d0d, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 100.91298
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c88b7624805db4ff79e9910c7b619d0d, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c88b7624805db4ff79e9910c7b619d0d, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c88b7624805db4ff79e9910c7b619d0d, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c88b7624805db4ff79e9910c7b619d0d, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c88b7624805db4ff79e9910c7b619d0d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c88b7624805db4ff79e9910c7b619d0d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c88b7624805db4ff79e9910c7b619d0d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: c88b7624805db4ff79e9910c7b619d0d, type: 3}
+      propertyPath: m_Name
+      value: pedestal
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: c88b7624805db4ff79e9910c7b619d0d, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1700900737}
+  m_SourcePrefab: {fileID: 100100000, guid: c88b7624805db4ff79e9910c7b619d0d, type: 3}
 --- !u!1 &1052698628
 GameObject:
   m_ObjectHideFlags: 0
@@ -44163,6 +44223,47 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3200493073523778508, guid: 04a4e878e00603c449a8863e8467304b, type: 3}
   m_PrefabInstance: {fileID: 1261619072}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1700900736 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: c88b7624805db4ff79e9910c7b619d0d, type: 3}
+  m_PrefabInstance: {fileID: 1051724177}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1700900737
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1700900736}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 52a45180fd75a294f944fc781091afa9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Collectibles.Collectible
+  _kind: 0
+  _title: Pedestal
+  _subtitle: 
+  _description: 
+  _icon: {fileID: 0}
+  _equipment: 0
+  _inspectModel: {fileID: 1700900736}
+  _inspectRotation: {x: 15, y: -25, z: 0}
+  _inspectScale: 1
+  _customInspectorView: {fileID: 0}
+  _customPromptView: {fileID: 0}
+  _interactRadius: 1.8
+  _interactOffset: {x: 0, y: 0, z: 0}
+  _promptText: Examinar
+  _promptHeight: 1.2
+  _id: 
+  _hideAfterInspect: 1
+  _rememberBetweenSessions: 0
+  OnInspectOpened:
+    m_PersistentCalls:
+      m_Calls: []
+  OnInspectClosed:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1001 &1702823473
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -55267,3 +55368,4 @@ SceneRoots:
   - {fileID: 912839900}
   - {fileID: 1368942686}
   - {fileID: 1790968200}
+  - {fileID: 1051724177}
