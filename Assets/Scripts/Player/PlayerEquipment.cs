@@ -119,6 +119,27 @@ public class PlayerEquipment : MonoBehaviour
     Changed?.Invoke();
   }
 
+  /// <summary>Pone el equipamiento tal cual (guardado / reaparecer). Busca su coleccionable en la escena para Estado.</summary>
+  public void SetEquipped(bool sword, bool shield)
+  {
+    _hasSword = sword;
+    _hasShield = shield;
+    _swordItem = sword ? (_swordItem != null ? _swordItem : FindItem(EquipmentSlot.Espada)) : null;
+    _shieldItem = shield ? (_shieldItem != null ? _shieldItem : FindItem(EquipmentSlot.Escudo)) : null;
+    Apply();
+    Changed?.Invoke();
+  }
+
+  private static Collectible FindItem(EquipmentSlot slot)
+  {
+    foreach (var c in FindObjectsByType<Collectible>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+    {
+      if (c.Equipment == slot) return c;
+    }
+
+    return null;
+  }
+
   private void Apply()
   {
     SetActive(_swordVisuals, _hasSword);

@@ -53,6 +53,21 @@ public static class KeyRing
     Changed?.Invoke(id, n);
   }
 
+  /// <summary>Todas las llaves: tipo -> cantidad.</summary>
+  public static IReadOnlyDictionary<string, int> All => s_keys;
+
+  /// <summary>Vacia el llavero (guardado / reaparecer).</summary>
+  public static void Clear()
+  {
+    var ids = new List<string>(s_keys.Keys);
+    s_keys.Clear();
+
+    foreach (var id in ids)
+    {
+      Changed?.Invoke(id, 0);
+    }
+  }
+
   /// <summary>Gasta una llave. Devuelve false si no habia.</summary>
   public static bool Use(string id = "")
   {

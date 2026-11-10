@@ -69,6 +69,9 @@ namespace NuiGrab
 
     public bool IsBroken => _broken;
 
+    /// <summary>Lo que sale al romperla (espada, escudo, llave, hoja...).</summary>
+    public GameObject ContainedPickup => _containedPickup;
+
     /// <summary>True si solo se puede romper con la espada.</summary>
     public bool OnlySword => _onlySword;
     public float BreakSpeed => _breakSpeed;

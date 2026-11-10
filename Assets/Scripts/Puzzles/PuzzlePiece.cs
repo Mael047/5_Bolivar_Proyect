@@ -10,6 +10,9 @@ public class PuzzlePiece : MonoBehaviour
     public string PieceId => _pieceId != null ? _pieceId.Trim() : string.Empty;
     public bool IsLocked { get; private set; }
     public bool IsSnapping { get; internal set; }
+
+    /// <summary>Se puede agarrar con la mano (el puzzle de cartas lo apaga fuera de la vista de la mesa).</summary>
+    public bool GrabEnabled { get; set; } = true;
     public PuzzleSlot CurrentSlot { get; internal set; }
 
     public Rigidbody Body => _rb;

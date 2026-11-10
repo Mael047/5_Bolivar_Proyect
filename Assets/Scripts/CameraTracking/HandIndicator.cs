@@ -33,6 +33,7 @@ namespace NuiGrab
     [SerializeField, Min(0f)] private float _sphereRadius = 0.25f;
 
     private ParticleSystem.MainModule _main;
+    private float _appliedScale = 1f;
     private ParticleSystem.EmissionModule _emission;
     private ParticleSystem.SizeOverLifetimeModule _sizeOverLifetime;
     private ParticleSystem.ColorOverLifetimeModule _colorOverLifetime;
@@ -108,6 +109,16 @@ namespace NuiGrab
       if (_handTracker == null || _camera == null || _particles == null)
       {
         return;
+      }
+
+      // Mismo tamaño de efectos que la telequinesis (vistas cercanas lo bajan).
+      var effectScale = TelekinesisVFX.EffectScale;
+
+      if (!Mathf.Approximately(_appliedScale, effectScale))
+      {
+        _appliedScale = effectScale;
+        var scaledMain = _particles.main;
+        scaledMain.startSize = new ParticleSystem.MinMaxCurve(_size * effectScale, _size * 1.8f * effectScale);
       }
 
       if (!_handTracker.IsHandDetected)

@@ -446,6 +446,26 @@ namespace NuiGrab
     }
 
     /// <summary>
+    /// Agarra un objeto directamente (sin pasar por la mano): lo usa el cambio
+    /// de escena para que la nutria siga llevando lo que tenia. Si la mano no
+    /// esta cerrada, se suelta solo en el siguiente frame.
+    /// </summary>
+    public void ForceGrab(Rigidbody target)
+    {
+      if (target == null)
+      {
+        return;
+      }
+
+      if (_isHolding)
+      {
+        ForceRelease();
+      }
+
+      Grab(target);
+    }
+
+    /// <summary>
     /// Soltado sin interceptores ni gravedad: lo usa el sistema de rompibles
     /// cuando el objeto agarrado se destruye y hay que limpiar el estado ya.
     /// </summary>

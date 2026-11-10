@@ -423,6 +423,19 @@ public class EnemyEncounter : MonoBehaviour
     }
   }
 
+  /// <summary>Partida guardada: este combate ya se gano. Sin enemigos, sin barreras y sin recompensas.</summary>
+  public void MarkClearedFromSave()
+  {
+    _state = State.Ganado;
+
+    foreach (var h in _enemies)
+    {
+      if (h != null) Destroy(h.gameObject);
+    }
+
+    SetBarriers(false);
+  }
+
   private void SetBarriers(bool active)
   {
     if (_barriers == null)
