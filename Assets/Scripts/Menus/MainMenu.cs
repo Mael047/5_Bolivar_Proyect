@@ -10,7 +10,7 @@
 //
 // Va en la raiz del Canvas del menu (prefab MainMenuUI). El aspecto del menu
 // se diseña libremente en el prefab; aqui solo se conectan los botones.
-// Por ahora solo "Nueva partida" hace algo; el resto se iran conectando.
+// Nueva partida, Cargar partida y Creditos funcionan; el resto se iran conectando.
 
 using System.Collections;
 using UnityEngine;
@@ -43,6 +43,10 @@ namespace Menus
     [SerializeField] private Button _settingsButton;
     [SerializeField] private Button _creditsButton;
     [SerializeField] private Button _quitButton;
+
+    [SerializeField, Tooltip("Pantalla de creditos (prefab CreditsUI dentro de este menu). " +
+                              "Si es el prefab del proyecto, se crea una copia dentro del menu.")]
+    private CreditsScreen _creditsScreen;
 
     [SerializeField, Tooltip("Boton seleccionado al abrir (para navegar con el mando). Vacio = Nueva partida.")]
     private Selectable _firstSelected;
@@ -133,7 +137,10 @@ namespace Menus
 
       // Pendientes: dejan constancia en consola hasta que se implementen.
       AddPending(_settingsButton, "Ajustes");
-      AddPending(_creditsButton, "Creditos");
+      if (_creditsButton != null)
+      {
+        _creditsButton.onClick.AddListener(OpenCredits);
+      }
       AddPending(_quitButton, "Salir del juego");
 
       if (_fadeImage != null)
@@ -231,6 +238,43 @@ namespace Menus
       }
 
       _camera.transform.SetPositionAndRotation(position, rotation);
+    }
+
+    // ---------- Creditos ----------
+
+    public void OpenCredits()
+    {
+      if (_starting)
+      {
+        return;
+      }
+
+      if (_creditsScreen == null)
+      {
+        _creditsScreen = GetComponentInChildren<CreditsScreen>(true);
+      }
+      else if (!_creditsScreen.gameObject.scene.IsValid())
+      {
+        // Asignaron el prefab del proyecto: se usa una copia dentro del menu.
+        _creditsScreen = Instantiate(_creditsScreen, transform);
+      }
+
+      if (_creditsScreen == null)
+      {
+        Debug.LogWarning("[MainMenu] Falta la pantalla de creditos (Tools > Menu principal > Crear pantalla de creditos).");
+        return;
+      }
+
+      _group.interactable = false;
+      _creditsScreen.Open(() =>
+      {
+        _group.interactable = true;
+
+        if (_creditsButton != null && EventSystem.current != null)
+        {
+          EventSystem.current.SetSelectedGameObject(_creditsButton.gameObject);
+        }
+      });
     }
 
     // ---------- Cargar partida ----------
