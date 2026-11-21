@@ -465,6 +465,12 @@ public class CameraOccluderHider : MonoBehaviour
       return true;
     }
 
+    // Las zonas corruptas son un efecto, no un objeto que tape.
+    if (t.GetComponentInParent<CorruptionZone>() != null)
+    {
+      return true;
+    }
+
     if (_target != null && t.IsChildOf(_target))
     {
       return true;

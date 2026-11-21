@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 7059868838607311442}
   - component: {fileID: 6068983625493613198}
   - component: {fileID: 4242765023050932394}
-  m_Layer: 0
+  m_Layer: 13
   m_Name: letrero
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -47,10 +47,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Collectibles.Collectible
   _kind: 1
-  _title: Cajas
+  _title: Mapa
   _subtitle: 
-  _description: "Para revisar tu estado, usa Options/Escape. Luego, navega por los
-    men\xFAs con L1/R1 o Q/E,  all\xED podr\xE1s ver Ajustes, Mapa y Estado. "
+  _description: "Con M/Pad puedes abrir tu mapa para ver hacia d\xF3nde ir y revisar
+    los puntos de inter\xE9s."
   _icon: {fileID: 0}
   _equipment: 0
   _inspectModel: {fileID: 0}
@@ -104,7 +104,7 @@ GameObject:
   - component: {fileID: 7761369670936001178}
   - component: {fileID: 4230729056076261130}
   - component: {fileID: 309783782904061196}
-  m_Layer: 0
+  m_Layer: 13
   m_Name: letrero
   m_TagString: Untagged
   m_Icon: {fileID: 0}

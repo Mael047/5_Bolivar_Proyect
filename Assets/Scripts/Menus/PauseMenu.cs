@@ -15,7 +15,9 @@
 //
 // Va en la raiz del Canvas (prefab PauseMenuUI). Todo el aspecto se diseña en
 // el prefab; aqui solo se conectan pantallas y botones.
-// Por ahora funcionan Continuar y Salir al menu; Ajustes queda pendiente.
+// Ajustes: en la misma pantalla de pausa cambia los botones por el panel de
+// ajustes (volumen de musica, volumen de efectos, Ajustes de camara y Volver).
+// Esc / Circulo con el panel abierto vuelven a los botones de pausa.
 
 using System.Collections;
 using UnityEngine;
@@ -48,6 +50,20 @@ namespace Menus
     [SerializeField] private Button _continueButton;
     [SerializeField] private Button _settingsButton;
     [SerializeField] private Button _exitToMenuButton;
+
+    [Header("Panel de Ajustes (en la pantalla de pausa)")]
+    [SerializeField, Tooltip("Botones de pausa (Continuar / Ajustes / Salir): se ocultan al abrir Ajustes.")]
+    private GameObject _mainButtons;
+    [SerializeField, Tooltip("Panel de Ajustes. Vacio = el boton Ajustes abre directamente la configuracion de camara.")]
+    private GameObject _settingsPanel;
+    [SerializeField] private Slider _musicSlider;
+    [SerializeField] private Slider _sfxSlider;
+    [SerializeField] private Button _cameraSettingsButton;
+    [SerializeField] private Button _backButton;
+    [SerializeField, Tooltip("Titulo de la pantalla (cambia a 'Ajustes' mientras el panel esta abierto).")]
+    private Graphic _titleLabel;
+    [SerializeField] private string _pauseTitle = "En pausa";
+    [SerializeField] private string _settingsTitle = "Ajustes";
 
     [Header("Navegacion en pantalla (opcionales)")]
     [SerializeField] private Button _previousButton;
@@ -123,6 +139,26 @@ namespace Menus
       if (_continueButton != null) _continueButton.onClick.AddListener(Close);
       if (_exitToMenuButton != null) _exitToMenuButton.onClick.AddListener(ExitToMainMenu);
       if (_settingsButton != null) _settingsButton.onClick.AddListener(OpenSettings);
+      if (_cameraSettingsButton != null) _cameraSettingsButton.onClick.AddListener(OpenCameraSetup);
+      if (_backButton != null) _backButton.onClick.AddListener(() => ShowSettings(false));
+
+      if (_musicSlider != null)
+      {
+        _musicSlider.minValue = 0f;
+        _musicSlider.maxValue = 1f;
+        _musicSlider.SetValueWithoutNotify(GameAudio.Music);
+        _musicSlider.onValueChanged.AddListener(v => GameAudio.Music = v);
+      }
+
+      if (_sfxSlider != null)
+      {
+        _sfxSlider.minValue = 0f;
+        _sfxSlider.maxValue = 1f;
+        _sfxSlider.SetValueWithoutNotify(GameAudio.Sfx);
+        _sfxSlider.onValueChanged.AddListener(v => GameAudio.Sfx = v);
+      }
+
+      if (_settingsPanel != null) _settingsPanel.SetActive(false);
       if (_previousButton != null) _previousButton.onClick.AddListener(() => Turn(-1));
       if (_nextButton != null) _nextButton.onClick.AddListener(() => Turn(1));
       if (_closeButton != null) _closeButton.onClick.AddListener(Close);
@@ -202,14 +238,14 @@ namespace Menus
       _mapAction.performed += _ => { if (!Collectibles.CollectibleInspector.IsOpen && !CameraSetup.IsOpen) OnMapPressed(); };
       _nextAction.performed += _ => { if (Interactive) Turn(1); };
       _previousAction.performed += _ => { if (Interactive) Turn(-1); };
-      _closeAction.performed += _ => { if (Interactive) Close(); };
+      _closeAction.performed += _ => { if (Interactive) Back(); };
     }
 
     private void OnPausePressed()
     {
       if (IsOpen)
       {
-        Close();
+        Back();
       }
       else
       {
@@ -237,8 +273,71 @@ namespace Menus
 
     private bool Interactive => IsOpen && !_closing && !Collectibles.CollectibleInspector.IsOpen && !CameraSetup.IsOpen;
 
-    /// <summary>Boton Ajustes: abre la configuracion de camara encima de la pausa.</summary>
+    /// <summary>Esc / Circulo: con Ajustes abierto vuelve a la pausa; si no, cierra.</summary>
+    private void Back()
+    {
+      if (SettingsVisible)
+      {
+        ShowSettings(false);
+      }
+      else
+      {
+        Close();
+      }
+    }
+
+    private bool SettingsVisible => _settingsPanel != null && _settingsPanel.activeSelf;
+
+    /// <summary>Boton Ajustes: muestra el panel de ajustes (o la camara si no hay panel).</summary>
     private void OpenSettings()
+    {
+      if (_settingsPanel == null)
+      {
+        OpenCameraSetup();
+        return;
+      }
+
+      ShowSettings(true);
+    }
+
+    /// <summary>Cambia entre los botones de pausa y el panel de Ajustes.</summary>
+    public void ShowSettings(bool show)
+    {
+      if (_settingsPanel == null)
+      {
+        return;
+      }
+
+      if (!show && _settingsPanel.activeSelf)
+      {
+        GameAudio.Save();
+      }
+
+      _settingsPanel.SetActive(show);
+      if (_mainButtons != null) _mainButtons.SetActive(!show);
+
+      if (_titleLabel != null)
+      {
+        Collectibles.UIText.Set(_titleLabel, show ? _settingsTitle : _pauseTitle);
+      }
+
+      if (show)
+      {
+        if (_musicSlider != null) _musicSlider.SetValueWithoutNotify(GameAudio.Music);
+        if (_sfxSlider != null) _sfxSlider.SetValueWithoutNotify(GameAudio.Sfx);
+      }
+
+      if (EventSystem.current != null)
+      {
+        var select = show
+          ? (_musicSlider != null ? _musicSlider.gameObject : _cameraSettingsButton != null ? _cameraSettingsButton.gameObject : null)
+          : (_settingsButton != null ? _settingsButton.gameObject : null);
+        EventSystem.current.SetSelectedGameObject(select);
+      }
+    }
+
+    /// <summary>Abre la configuracion de camara encima de la pausa.</summary>
+    private void OpenCameraSetup()
     {
       var setup = FindAnyObjectByType<CameraSetup>(FindObjectsInactive.Include);
 
@@ -281,6 +380,14 @@ namespace Menus
       if (_pauseGame)
       {
         Time.timeScale = 0f;
+      }
+
+      // Siempre abre con los botones de pausa (no con Ajustes).
+      if (_settingsPanel != null)
+      {
+        _settingsPanel.SetActive(false);
+        if (_mainButtons != null) _mainButtons.SetActive(true);
+        if (_titleLabel != null) Collectibles.UIText.Set(_titleLabel, _pauseTitle);
       }
 
       // Abre directamente en la pantalla pedida, sin giro.
@@ -434,7 +541,15 @@ namespace Menus
       if (_settingsOpen && !CameraSetup.IsOpen)
       {
         _settingsOpen = false;
-        _selectedPage = -1;
+
+        if (SettingsVisible && _cameraSettingsButton != null && EventSystem.current != null)
+        {
+          EventSystem.current.SetSelectedGameObject(_cameraSettingsButton.gameObject);
+        }
+        else
+        {
+          _selectedPage = -1;
+        }
       }
     }
 
@@ -505,6 +620,11 @@ namespace Menus
 
       _selectedPage = current;
       var first = _pages[current] != null ? _pages[current].firstSelected : null;
+
+      if (SettingsVisible && first != null && !first.gameObject.activeInHierarchy)
+      {
+        first = _musicSlider != null ? _musicSlider : (Selectable)_cameraSettingsButton;
+      }
       EventSystem.current.SetSelectedGameObject(first != null ? first.gameObject : null);
     }
 
