@@ -13906,6 +13906,121 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 616527000}
   m_SourcePrefab: {fileID: 100100000, guid: 0e97f92d84086476eb375cb3d65e1264, type: 3}
+--- !u!1001 &1454567843
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 772db7d2ece78446e80ef2c2c2b5e217, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1.9281
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 772db7d2ece78446e80ef2c2c2b5e217, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1.9281
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 772db7d2ece78446e80ef2c2c2b5e217, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1.9281
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 772db7d2ece78446e80ef2c2c2b5e217, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 8.811321
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 772db7d2ece78446e80ef2c2c2b5e217, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 2.259536
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 772db7d2ece78446e80ef2c2c2b5e217, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 27.265745
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 772db7d2ece78446e80ef2c2c2b5e217, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.9500729
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 772db7d2ece78446e80ef2c2c2b5e217, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 772db7d2ece78446e80ef2c2c2b5e217, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.31202826
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 772db7d2ece78446e80ef2c2c2b5e217, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 772db7d2ece78446e80ef2c2c2b5e217, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 772db7d2ece78446e80ef2c2c2b5e217, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 36.363
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 772db7d2ece78446e80ef2c2c2b5e217, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 772db7d2ece78446e80ef2c2c2b5e217, type: 3}
+      propertyPath: m_Name
+      value: florero
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 772db7d2ece78446e80ef2c2c2b5e217, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1454567845}
+  m_SourcePrefab: {fileID: 100100000, guid: 772db7d2ece78446e80ef2c2c2b5e217, type: 3}
+--- !u!1 &1454567844 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 772db7d2ece78446e80ef2c2c2b5e217, type: 3}
+  m_PrefabInstance: {fileID: 1454567843}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1454567845
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1454567844}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 52a45180fd75a294f944fc781091afa9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Collectibles.Collectible
+  _kind: 0
+  _title: Florero
+  _subtitle: 
+  _description: "Florero decorativo con asas, pensado para adornar salones y mesas.
+    Las flores frescas o artificiales eran parte importante de la decoraci\xF3n de
+    las casas elegantes del siglo XIX."
+  _icon: {fileID: 0}
+  _equipment: 0
+  _inspectModel: {fileID: 0}
+  _inspectRotation: {x: 15, y: -25, z: 0}
+  _inspectScale: 1
+  _customInspectorView: {fileID: 0}
+  _customPromptView: {fileID: 0}
+  _interactRadius: 1.8
+  _interactOffset: {x: 0, y: 0, z: 0}
+  _promptText: Examinar
+  _promptHeight: 1.2
+  _id: 
+  _hideAfterInspect: 1
+  _rememberBetweenSessions: 0
+  OnInspectOpened:
+    m_PersistentCalls:
+      m_Calls: []
+  OnInspectClosed:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &1463829161 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -4529635773286906552, guid: 68f9301abc1d342ef94c4d2913bf7edf, type: 3}
@@ -16509,6 +16624,121 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 243cad299061c44a0a381a16a4419eac, type: 3}
   m_PrefabInstance: {fileID: 501087768}
   m_PrefabAsset: {fileID: 0}
+--- !u!1001 &1848027508
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 7463ed52759fd4e1ba8076d2bc230844, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 2.317
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 7463ed52759fd4e1ba8076d2bc230844, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 2.317
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 7463ed52759fd4e1ba8076d2bc230844, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 2.317
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 7463ed52759fd4e1ba8076d2bc230844, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -3.297624
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 7463ed52759fd4e1ba8076d2bc230844, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.1728257
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 7463ed52759fd4e1ba8076d2bc230844, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -3.5211957
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 7463ed52759fd4e1ba8076d2bc230844, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.2949743
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 7463ed52759fd4e1ba8076d2bc230844, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 7463ed52759fd4e1ba8076d2bc230844, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0.9555052
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 7463ed52759fd4e1ba8076d2bc230844, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 7463ed52759fd4e1ba8076d2bc230844, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 7463ed52759fd4e1ba8076d2bc230844, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: -145.688
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 7463ed52759fd4e1ba8076d2bc230844, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7463ed52759fd4e1ba8076d2bc230844, type: 3}
+      propertyPath: m_Name
+      value: relojmaternidad
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7463ed52759fd4e1ba8076d2bc230844, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1848027510}
+  m_SourcePrefab: {fileID: 100100000, guid: 7463ed52759fd4e1ba8076d2bc230844, type: 3}
+--- !u!1 &1848027509 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 7463ed52759fd4e1ba8076d2bc230844, type: 3}
+  m_PrefabInstance: {fileID: 1848027508}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1848027510
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1848027509}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 52a45180fd75a294f944fc781091afa9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Collectibles.Collectible
+  _kind: 0
+  _title: Reloj de la maternidad
+  _subtitle: 
+  _description: "Reloj de mesa o de chimenea decorado con una escena de una madre
+    con su hijo. En el siglo XIX estos relojes de bronce dorado eran objetos de lujo.
+    Adem\xE1s de dar la hora, mostraban el gusto refinado de la familia."
+  _icon: {fileID: 0}
+  _equipment: 0
+  _inspectModel: {fileID: 0}
+  _inspectRotation: {x: 15, y: -25, z: 0}
+  _inspectScale: 1
+  _customInspectorView: {fileID: 0}
+  _customPromptView: {fileID: 0}
+  _interactRadius: 1.8
+  _interactOffset: {x: 0, y: 0, z: 0}
+  _promptText: Examinar
+  _promptHeight: 1.2
+  _id: 
+  _hideAfterInspect: 1
+  _rememberBetweenSessions: 0
+  OnInspectOpened:
+    m_PersistentCalls:
+      m_Calls: []
+  OnInspectClosed:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &1861776702 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -8588249127192008259, guid: b91ff0e96a4454840a62092d1cd3b0fd, type: 3}
@@ -18403,3 +18633,5 @@ SceneRoots:
   - {fileID: 520763893}
   - {fileID: 193375370}
   - {fileID: 961470699}
+  - {fileID: 1848027508}
+  - {fileID: 1454567843}
