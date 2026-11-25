@@ -2,7 +2,7 @@
 // Se crea solo en cada escena (lo pone GameState). Hace tres cosas:
 //   1. Anota en GameState lo que pasa en el mundo: puertas abiertas, llaves y
 //      coleccionables recogidos, cajas unicas rotas (las que tienen espada,
-//      escudo o llave), puzzles resueltos, combates ganados.
+//      escudo o llave), puzzles resueltos, combates ganados, zonas corruptas limpias.
 //   2. Al llegar a la escena con estado pendiente (cargar partida, morir,
 //      cruzar una puerta) lo aplica: deja todo como estaba, devuelve sus cosas
 //      a la nutria, la pone en el banco y crea los restos si murio aqui.
@@ -108,6 +108,20 @@ public class WorldState : MonoBehaviour
       var id = IdOf(encounter, "combate");
       if (GameState.HasFlag(id)) encounter.MarkClearedFromSave();
       else encounter.OnCleared.AddListener(() => GameState.SetFlag(id));
+    }
+
+    foreach (var boss in FindAll<BossFight>(scene))
+    {
+      var id = IdOf(boss, "jefe");
+      if (GameState.HasFlag(id)) boss.MarkDefeatedFromSave();
+      else boss.Defeated += _ => GameState.SetFlag(id);
+    }
+
+    foreach (var zone in FindAll<CorruptionZone>(scene))
+    {
+      var id = IdOf(zone, "corrupcion");
+      if (GameState.HasFlag(id)) zone.ClearImmediate();
+      else zone.Cleared += _ => GameState.SetFlag(id);
     }
 
     _templateHolder = new GameObject("Cajas_Plantillas").transform;

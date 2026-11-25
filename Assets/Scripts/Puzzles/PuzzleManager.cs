@@ -191,6 +191,26 @@ public class PuzzleManager : MonoBehaviour
       }
     }
 
+    /// <summary>
+    /// Vuelve a comprobar si el puzzle quedo resuelto (lo usan los postes del
+    /// puzzle de escudos al colocar un escudo desde el inventario).
+    /// </summary>
+    public void Evaluate() => CheckCompletion();
+
+    /// <summary>Todos los huecos tienen pieza (bien o mal).</summary>
+    public bool AllSlotsFilled
+    {
+        get
+        {
+            foreach (var slot in _slots)
+            {
+                if (slot != null && !slot.IsOccupied) return false;
+            }
+
+            return true;
+        }
+    }
+
     private void CheckCompletion()
     {
         if (IsComplete)

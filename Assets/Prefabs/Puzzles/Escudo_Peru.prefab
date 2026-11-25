@@ -48,6 +48,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 940278086607439731, guid: 16b69273e9596e94696cffdfaeb50f52, type: 3}
+      propertyPath: m_IsKinematic
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 1175124993854189907, guid: 16b69273e9596e94696cffdfaeb50f52, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
@@ -60,8 +64,52 @@ PrefabInstance:
       propertyPath: m_Name
       value: Escudo_Peru
       objectReference: {fileID: 0}
+    - target: {fileID: 7699962759507647785, guid: 16b69273e9596e94696cffdfaeb50f52, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8155861100640498348, guid: 16b69273e9596e94696cffdfaeb50f52, type: 3}
+      propertyPath: m_IsTrigger
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 7699962759507647785, guid: 16b69273e9596e94696cffdfaeb50f52, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 98882145380477597}
   m_SourcePrefab: {fileID: 100100000, guid: 16b69273e9596e94696cffdfaeb50f52, type: 3}
+--- !u!1 &5504244009531216284 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7699962759507647785, guid: 16b69273e9596e94696cffdfaeb50f52, type: 3}
+  m_PrefabInstance: {fileID: 2790195022348061877}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &98882145380477597
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5504244009531216284}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c9015219bd261a744bde6f71a5003044, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShieldPickup
+  _shieldId: 
+  _pickupRadius: 1.3
+  _idleMotion: 1
+  _bobHeight: 0.08
+  _spinSpeed: 40
+  _catalog: {fileID: 11400000, guid: 6899e09cfee303b44bb3380a63685f8f, type: 2}
+  _message: '<b>Escudo de {0}</b>
+
+    <size=22>Guardado en tu inventario</size>'
+  _messageView: {fileID: 1877635988899000770, guid: 964498f2b0eaba24a81f5fe0501bf15b, type: 3}
+  _messageDuration: 2.5
+  _pickupSound: {fileID: 0}
+  _volume: 0.9
+  OnPickedUp:
+    m_PersistentCalls:
+      m_Calls: []

@@ -1177,7 +1177,6 @@ GameObject:
   - component: {fileID: 810121224581466927}
   - component: {fileID: 4493089790715023143}
   - component: {fileID: 991769048111558037}
-  - component: {fileID: 7256025793932000531}
   - component: {fileID: 8823740642261538831}
   m_Layer: 10
   m_Name: MARIMONDA_1_MORADA
@@ -1415,25 +1414,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3a9b1bd05a47ed34db70e15dddfccf3a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyAnimationEvents
---- !u!114 &7256025793932000531
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3377095857951522128}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9466b1024d12c7745b025d40eb40659c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ContactDamage
-  _damage: -1
-  _playerInvulnerability: 1
-  _knockback: 6
-  _cameraShake: 0.35
-  _blockWithShield: 1
-  _blockAngle: 140
-  _blockedKnockback: 0.5
 --- !u!114 &8823740642261538831
 MonoBehaviour:
   m_ObjectHideFlags: 0

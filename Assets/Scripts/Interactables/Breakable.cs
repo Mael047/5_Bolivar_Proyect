@@ -165,6 +165,12 @@ namespace NuiGrab
         return;
       }
 
+      // Los pedazos de otra caja nunca la rompen (evita roturas en cadena).
+      if (collision.collider != null && collision.collider.GetComponentInParent<Fragment>() != null)
+      {
+        return;
+      }
+
       if (IsPlayerCollision(collision))
       {
         return;
@@ -499,7 +505,8 @@ namespace NuiGrab
       var player = FindAnyObjectByType<global::Player>();
       if (player != null)
       {
-        AddSolid(player.GetComponentsInChildren<Collider>(true), characters);
+        // Todos los colliders de Chopi, tambien los triggers (espada, zonas).
+        characters.AddRange(player.GetComponentsInChildren<Collider>(true));
       }
 
       foreach (var enemy in FindObjectsByType<Enemy>(FindObjectsInactive.Include, FindObjectsSortMode.None))
@@ -515,6 +522,72 @@ namespace NuiGrab
         {
           Physics.IgnoreCollision(fragment, character);
         }
+      }
+    }
+
+    // ---------- Capa de los pedazos ----------
+
+    private const string FragmentLayerName = "Fragmentos";
+    private static int s_fragmentLayer = -1;
+
+    /// <summary>
+    /// Capa de los pedazos: la llamada "Fragmentos" si existe; si no, la
+    /// primera capa libre (sin nombre) a partir de la 12. Solo choca con
+    /// Default, TransparentFX, Water, obstacleMask y PuzzleScenery.
+    /// </summary>
+    public static int FragmentLayer
+    {
+      get
+      {
+        if (s_fragmentLayer >= 0)
+        {
+          return s_fragmentLayer;
+        }
+
+        var layer = LayerMask.NameToLayer(FragmentLayerName);
+
+        if (layer < 0)
+        {
+          for (var i = 12; i < 32; i++)
+          {
+            if (string.IsNullOrEmpty(LayerMask.LayerToName(i)))
+            {
+              layer = i;
+              break;
+            }
+          }
+        }
+
+        if (layer < 0)
+        {
+          layer = 0; // sin capas libres: se queda como antes
+        }
+        else
+        {
+          // Con que capas choca: suelo y escenario. Con nada mas.
+          var collidesWith = (1 << 0) | (1 << 1) | (1 << 4) | (1 << 7) | (1 << 9);
+
+          for (var i = 0; i < 32; i++)
+          {
+            Physics.IgnoreLayerCollision(layer, i, (collidesWith & (1 << i)) == 0);
+          }
+        }
+
+        s_fragmentLayer = layer;
+        return layer;
+      }
+    }
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetFragmentLayer() => s_fragmentLayer = -1;
+
+    private static void SetLayerRecursive(Transform t, int layer)
+    {
+      t.gameObject.layer = layer;
+
+      for (var i = 0; i < t.childCount; i++)
+      {
+        SetLayerRecursive(t.GetChild(i), layer);
       }
     }
 
@@ -536,8 +609,9 @@ namespace NuiGrab
         Vector3 impactVelocity,
         List<Collider> spawnedColliders)
     {
-      // Los fragmentos viven en capa normal: la mano no puede agarrarlos.
-      fragment.layer = 0;
+      // Capa propia de los pedazos: solo chocan con el suelo y el escenario
+      // (no con Chopi, ni con las cajas, ni con los enemigos, ni con la mano).
+      SetLayerRecursive(fragment.transform, FragmentLayer);
 
       var body = fragment.GetComponent<Rigidbody>();
       if (body == null)

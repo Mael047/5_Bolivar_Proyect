@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fe23331b935e1c4c8b5d0837a2c88a8, type: 3}
+  m_Name: CatalogoEscudos
+  m_EditorClassIdentifier: Assembly-CSharp::ShieldCatalog
+  _entries:
+  - id: Venezuela
+    displayName: Venezuela
+    icon: {fileID: 21300000, guid: 5e8105306da0c9d4f852fca755ca4a12, type: 3}
+  - id: Colombia
+    displayName: Colombia
+    icon: {fileID: 21300000, guid: e896a8a3a3e3cb94daf101ec11dc779a, type: 3}
+  - id: Ecuador
+    displayName: Ecuador
+    icon: {fileID: 21300000, guid: 877aa570671f35f488d8341f74ff3e43, type: 3}
+  - id: Peru
+    displayName: "Per\xFA"
+    icon: {fileID: 21300000, guid: b305d01ac01692d419d4db96d20eaf62, type: 3}
+  - id: Bolivia
+    displayName: Bolivia
+    icon: {fileID: 21300000, guid: 996a3cac1c423434989ba2f1d4fbe8b4, type: 3}
+  _emptyIcon: {fileID: 21300000, guid: fca941f9db3c6044c900dfa91ac303a0, type: 3}

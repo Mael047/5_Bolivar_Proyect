@@ -1906,8 +1906,8 @@ GameObject:
   - component: {fileID: 1156744117358541053}
   - component: {fileID: 6584286059465223445}
   - component: {fileID: 5021300501716376619}
-  - component: {fileID: 762006280188012684}
   - component: {fileID: 7829999773949376168}
+  - component: {fileID: 1152881465963495243}
   m_Layer: 10
   m_Name: MARIMONDA_2_CAFE
   m_TagString: Untagged
@@ -2001,8 +2001,8 @@ MonoBehaviour:
   speed: 1
   speedDetected: 4
   target: {fileID: 0}
-  viewRadius: 10
-  viewAngle: 90
+  viewRadius: 15
+  viewAngle: 360
   obstacleMask:
     serializedVersion: 2
     m_Bits: 128
@@ -2144,25 +2144,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3a9b1bd05a47ed34db70e15dddfccf3a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyAnimationEvents
---- !u!114 &762006280188012684
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5218715711750211966}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9466b1024d12c7745b025d40eb40659c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ContactDamage
-  _damage: -1
-  _playerInvulnerability: 1
-  _knockback: 6
-  _cameraShake: 0.35
-  _blockWithShield: 1
-  _blockAngle: 140
-  _blockedKnockback: 0.5
 --- !u!114 &7829999773949376168
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2178,7 +2159,7 @@ MonoBehaviour:
   _projectile: {fileID: 6589211116077148110, guid: 0861e14292f05b348b2ad7241f89fd79, type: 3}
   _muzzle: {fileID: 8775501847161319560}
   _muzzleForward: 0.3
-  _shotsPerAttack: 1
+  _shotsPerAttack: 2
   _spreadAngle: 20
   _targetHeight: 0.9
   _leadFactor: 0.3
@@ -2200,6 +2181,23 @@ MonoBehaviour:
   OnFire:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &1152881465963495243
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5218715711750211966}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2655a4edb5d59934db95654949fbdbe4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Rendimiento.DistanceCullable
+  _kind: 1
+  _moves: 1
+  _pauseRenderers: 1
+  _radius: 0
+  _extraScripts: []
 --- !u!1 &5361934580176401451
 GameObject:
   m_ObjectHideFlags: 0

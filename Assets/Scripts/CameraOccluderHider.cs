@@ -83,6 +83,7 @@ public class CameraOccluderHider : MonoBehaviour
   {
     public Renderer renderer;
     public Material[] original;
+    public Material[] instances;
     public Color[] colors;
     public bool transparent;
     public ShadowCastingMode shadowMode;
@@ -465,6 +466,12 @@ public class CameraOccluderHider : MonoBehaviour
       return true;
     }
 
+    // Las zonas corruptas son un efecto, no un objeto que tape.
+    if (t.GetComponentInParent<CorruptionZone>() != null)
+    {
+      return true;
+    }
+
     if (_target != null && t.IsChildOf(_target))
     {
       return true;
@@ -511,14 +518,22 @@ public class CameraOccluderHider : MonoBehaviour
         break;
       }
 
-      copies[i] = copy;
+      // Copia propia de este objeto: su opacidad se cambia en el material.
+      // (No se usa MaterialPropertyBlock: el GPU Resident Drawer lo ignora
+      // y en la build los objetos no se transparentaban.)
+      copies[i] = new Material(copy) { name = copy.name };
       f.colors[i] = copy.GetColor(BaseColorId);
     }
 
     if (ok)
     {
       f.transparent = true;
+      f.instances = copies;
       r.sharedMaterials = copies;
+    }
+    else
+    {
+      foreach (var m in copies) if (m != null) Destroy(m);
     }
 
     return f;
@@ -530,11 +545,9 @@ public class CameraOccluderHider : MonoBehaviour
     {
       for (var i = 0; i < f.colors.Length; i++)
       {
-        f.renderer.GetPropertyBlock(_block, i);
         var c = f.colors[i];
         c.a *= f.alpha;
-        _block.SetColor(BaseColorId, c);
-        f.renderer.SetPropertyBlock(_block, i);
+        f.instances[i].SetColor(BaseColorId, c);
       }
     }
     else
@@ -551,14 +564,15 @@ public class CameraOccluderHider : MonoBehaviour
       if (f.transparent)
       {
         r.sharedMaterials = f.original;
-
-        for (var i = 0; i < f.original.Length; i++)
-        {
-          r.SetPropertyBlock(null, i);
-        }
       }
 
       r.shadowCastingMode = f.shadowMode;
+    }
+
+    if (f != null && f.instances != null)
+    {
+      foreach (var m in f.instances) if (m != null) Destroy(m);
+      f.instances = null;
     }
 
     _faded.Remove(r);

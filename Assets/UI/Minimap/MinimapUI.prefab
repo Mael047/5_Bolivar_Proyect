@@ -253,24 +253,24 @@ MonoBehaviour:
   _rendererIndex: -1
   _categoryStyles:
   - category: 0
-    icon: {fileID: 0}
-    color: {r: 1, g: 0.85, b: 0.3, a: 1}
-    size: 22
+    icon: {fileID: 21300000, guid: dccc63134f27173469c60d2d881754a8, type: 3}
+    color: {r: 1, g: 1, b: 1, a: 1}
+    size: 20
     clampToEdge: 0
   - category: 1
     icon: {fileID: 0}
-    color: {r: 0.95, g: 0.65, b: 0.25, a: 1}
-    size: 22
+    color: {r: 0.95, g: 0.7, b: 0.3, a: 1}
+    size: 16
     clampToEdge: 0
   - category: 2
-    icon: {fileID: 0}
-    color: {r: 0.55, g: 0.85, b: 1, a: 1}
-    size: 20
+    icon: {fileID: 21300000, guid: 6a339b6e927e62f488453c0bc398e012, type: 3}
+    color: {r: 1, g: 1, b: 1, a: 1}
+    size: 26
     clampToEdge: 0
   - category: 3
-    icon: {fileID: 0}
-    color: {r: 1, g: 0.35, b: 0.3, a: 1}
-    size: 28
+    icon: {fileID: 21300000, guid: 07b55c88a07492c4fb8f351ce7fcee1f, type: 3}
+    color: {r: 1, g: 1, b: 1, a: 1}
+    size: 30
     clampToEdge: 1
   - category: 4
     icon: {fileID: 0}
@@ -279,8 +279,23 @@ MonoBehaviour:
     clampToEdge: 0
   - category: 5
     icon: {fileID: 0}
+    color: {r: 0.8, g: 0.8, b: 0.8, a: 1}
+    size: 14
+    clampToEdge: 0
+  - category: 6
+    icon: {fileID: 21300000, guid: 9158f28a73afd5948977b4de6ba3d692, type: 3}
     color: {r: 1, g: 1, b: 1, a: 1}
-    size: 18
+    size: 24
+    clampToEdge: 0
+  - category: 7
+    icon: {fileID: 21300000, guid: e8abc87de46f2dc488e808f2c4b9fa98, type: 3}
+    color: {r: 1, g: 1, b: 1, a: 1}
+    size: 26
+    clampToEdge: 0
+  - category: 8
+    icon: {fileID: 21300000, guid: e281392989e09b640904286e3656aaf1, type: 3}
+    color: {r: 1, g: 1, b: 1, a: 1}
+    size: 22
     clampToEdge: 0
   _autoMarkEnemies: 1
   _edgePadding: 14
