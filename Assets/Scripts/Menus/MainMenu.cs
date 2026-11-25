@@ -68,6 +68,12 @@ namespace Menus
     [SerializeField, Tooltip("Configuracion de camara. Vacio = se busca en la escena.")]
     private CameraSetup _cameraSetup;
 
+    [SerializeField, Tooltip("Historia de contexto (prefab IntroContexto): imagenes con texto que salen despues de configurar la camara y antes de ir hacia Chopi.")]
+    private IntroSlideshow _intro;
+
+    [SerializeField, Tooltip("Mostrar la historia de contexto al empezar una Nueva partida.")]
+    private bool _playIntroOnNewGame = true;
+
     [SerializeField] private Transition _transition = Transition.MoverCamara;
 
     [SerializeField, Min(0.1f), Tooltip("Duracion del viaje de camara o de cada fundido.")]
@@ -141,7 +147,10 @@ namespace Menus
       {
         _creditsButton.onClick.AddListener(OpenCredits);
       }
-      AddPending(_quitButton, "Salir del juego");
+      if (_quitButton != null)
+      {
+        _quitButton.onClick.AddListener(QuitGame);
+      }
 
       if (_fadeImage != null)
       {
@@ -277,6 +286,23 @@ namespace Menus
       });
     }
 
+    // ---------- Salir ----------
+
+    /// <summary>Cierra el juego (en el editor detiene el modo Play).</summary>
+    public void QuitGame()
+    {
+      if (_starting)
+      {
+        return;
+      }
+
+#if UNITY_EDITOR
+      UnityEditor.EditorApplication.isPlaying = false;
+#else
+      Application.Quit();
+#endif
+    }
+
     // ---------- Cargar partida ----------
 
     public void LoadGame()
@@ -357,6 +383,18 @@ namespace Menus
             SelectFirst();
             yield break;
           }
+        }
+      }
+
+      // 3. Historia de contexto (imagenes con texto) antes de ir hacia Chopi.
+      if (_playIntroOnNewGame && _intro != null)
+      {
+        var intro = _intro.gameObject.scene.IsValid() ? _intro : Instantiate(_intro);
+        yield return intro.Play();
+
+        if (intro != _intro)
+        {
+          Destroy(intro.gameObject);
         }
       }
 

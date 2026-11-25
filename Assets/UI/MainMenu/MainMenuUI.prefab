@@ -900,6 +900,8 @@ MonoBehaviour:
   _idleSway: 0.15
   _cameraSetupOnNewGame: 1
   _cameraSetup: {fileID: 0}
+  _intro: {fileID: 3184774445595518356, guid: 12e352a6856916f4a9a1da1e002fa2d5, type: 3}
+  _playIntroOnNewGame: 1
   _transition: 0
   _transitionDuration: 2
   _transitionCurve:

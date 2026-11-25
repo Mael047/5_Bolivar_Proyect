@@ -818,6 +818,7 @@ GameObject:
   - component: {fileID: 2210331584446468339}
   - component: {fileID: 4977803405032788776}
   - component: {fileID: 7782055384678897927}
+  - component: {fileID: 7280395676042856241}
   m_Layer: 10
   m_Name: TORITO_2
   m_TagString: Untagged
@@ -1068,9 +1069,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ChargeAttack
   _minRange: 0
   _maxRange: 9
-  _cooldown: 2.5
+  _cooldown: 3
   _interruptibleWindup: 1
-  _windupTime: 1.1
+  _windupTime: 1.5
   _trackPortion: 0.75
   _aimTurnSpeed: 360
   _windupShake: 0.03
@@ -1084,10 +1085,14 @@ MonoBehaviour:
   _damage: 20
   _knockback: 11
   _playerInvulnerability: 1
-  _hitCameraShake: 0.5
+  _hitCameraShake: 0.829
   _blockWithShield: 1
   _blockAngle: 140
-  _recoverTime: 0.8
+  _breakBoxes: 1
+  _breakSwordOnly: 0
+  _stopOnBreak: 0
+  _breakCameraShake: 0.2
+  _recoverTime: 1
   _crashStunTime: 1.6
   _crashCameraShake: 0.35
   _showIndicator: 1
@@ -1096,7 +1101,7 @@ MonoBehaviour:
   _indicatorLockedColor: {r: 1, g: 0.05, b: 0.05, a: 0.85}
   _groundMask:
     serializedVersion: 2
-    m_Bits: 4294965971
+    m_Bits: 2707
   _indicatorMaterial: {fileID: 0}
   _windupSound: {fileID: 0}
   _dashSound: {fileID: 0}
@@ -1114,6 +1119,23 @@ MonoBehaviour:
   OnCrash:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &7280395676042856241
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3465068321428375654}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2655a4edb5d59934db95654949fbdbe4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Rendimiento.DistanceCullable
+  _kind: 1
+  _moves: 1
+  _pauseRenderers: 1
+  _radius: 0
+  _extraScripts: []
 --- !u!1 &3580013189245497804
 GameObject:
   m_ObjectHideFlags: 0

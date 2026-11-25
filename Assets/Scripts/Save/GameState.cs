@@ -119,6 +119,15 @@ public static class GameState
     }
   }
 
+  /// <summary>Quita una marca (escudos que se colocan o se retiran de un poste).</summary>
+  public static void ClearFlag(string id)
+  {
+    if (!string.IsNullOrEmpty(id) && s_flags.Remove(id))
+    {
+      Session.flags.Remove(id);
+    }
+  }
+
   public static string CollectedFlag(Collectible c) => "recogido:" + c.Id;
 
   private static void OnCollected(Collectible c)
