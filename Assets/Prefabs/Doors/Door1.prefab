@@ -45,7 +45,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1a988bf88855d234080f248c09b2505a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MapMarker
-  _category: 2
+  _category: 7
   _showOnMinimap: 1
   _showOnMap: 1
   _anchor: {fileID: 0}

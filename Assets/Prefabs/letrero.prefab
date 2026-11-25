@@ -215,7 +215,7 @@ MonoBehaviour:
   _showOnMinimap: 1
   _showOnMap: 1
   _anchor: {fileID: 0}
-  _overrideStyle: 1
+  _overrideStyle: 0
   _icon: {fileID: 0}
   _color: {r: 0.043704927, g: 1, b: 0, a: 1}
   _size: 22

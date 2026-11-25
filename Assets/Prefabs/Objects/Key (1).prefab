@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 9084799646263658730}
   - component: {fileID: 6663494386117844003}
   - component: {fileID: 334396071260581778}
+  - component: {fileID: 5382771028051175716}
   m_Layer: 0
   m_Name: Key (1)
   m_TagString: Untagged
@@ -114,6 +115,28 @@ MonoBehaviour:
   OnPickedUp:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &5382771028051175716
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7310415070247296654}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1a988bf88855d234080f248c09b2505a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MapMarker
+  _category: 8
+  _showOnMinimap: 1
+  _showOnMap: 1
+  _anchor: {fileID: 0}
+  _overrideStyle: 0
+  _icon: {fileID: 0}
+  _color: {r: 1, g: 1, b: 1, a: 1}
+  _size: 22
+  _clampToEdge: 0
+  _rotateWithTarget: 0
 --- !u!1001 &563922364633492904
 PrefabInstance:
   m_ObjectHideFlags: 0

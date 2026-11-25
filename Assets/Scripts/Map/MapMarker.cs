@@ -11,14 +11,19 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// Los valores van fijos: las escenas guardan el numero, asi que nunca se
+// borra ni se reordena una categoria (solo se añaden al final).
 public enum MapMarkerCategory
 {
-  PuntoDeInteres,
-  Puerta,
-  Objetivo,
-  Enemigo,
-  Otro,
-  Letrero
+  PuntoDeInteres = 0,
+  Cofre = 1,
+  [InspectorName("Puerta cerrada")] Puerta = 2,
+  Objetivo = 3,
+  Enemigo = 4,
+  Otro = 5,
+  Letrero = 6,
+  [InspectorName("Puerta rompible")] PuertaRompible = 7,
+  Llave = 8
 }
 
 [DisallowMultipleComponent]
